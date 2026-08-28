@@ -113,7 +113,7 @@ describe("public conformance vectors", () => {
     ) as VectorManifest;
     expect(manifest).toEqual({
       schemaVersion: 1,
-      specVersion: "0.1-draft",
+      specVersion: "1.0",
       files: [
         { file: "machine.json", kind: "machine", required: true },
         { file: "public.json", kind: "public", required: true },
@@ -133,7 +133,7 @@ describe("public conformance vectors", () => {
 
   it("normalizes every accepted MID form", () => {
     const data = loadVectors<MachineVector>("machine");
-    expect(data.specVersion).toBe("0.1-draft");
+    expect(data.specVersion).toBe("1.0");
     for (const vector of data.vectors) {
       expect(parseMachineId(vector.canonical)).toBe(vector.canonical);
       for (const accepted of vector.accepted) {

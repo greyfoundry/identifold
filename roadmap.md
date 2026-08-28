@@ -17,6 +17,20 @@ This roadmap is the public delivery contract for Identifold. A phase is complete
 | 8     | Complete | All exit gates satisfied                       |
 | 9     | Complete | All exit gates satisfied                       |
 
+## Version 1.0 multilingual release
+
+Status: In progress.
+
+The 1.0 release freezes the specification and conformance vectors, promotes the TypeScript and Python examples to tested production artifacts, and ships conforming implementations for TypeScript, Python, Java, C#, Go, PHP, Kotlin, Rust, Ruby, and Swift.
+
+Exit gate:
+
+- every implementation passes every required language-neutral vector;
+- package and build metadata report version `1.0.0`;
+- the TypeScript and Python production examples execute successfully;
+- protected hosted checks cover every supported runtime;
+- the `v1.0.0` tag and release are created only from a clean, verified `main`.
+
 ## Phase 0: Identity specification
 
 Define the stable concepts and the boundaries between them.

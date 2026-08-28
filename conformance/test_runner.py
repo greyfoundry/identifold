@@ -16,7 +16,7 @@ class RunnerContractTest(unittest.TestCase):
                 json.dumps(
                     {
                         "schemaVersion": 1,
-                        "specVersion": "0.1-draft",
+                        "specVersion": "1.0",
                         "files": [
                             {
                                 "file": "machine.json",
@@ -32,7 +32,7 @@ class RunnerContractTest(unittest.TestCase):
                 json.dumps(
                     {
                         "kind": "machine",
-                        "specVersion": "0.1-draft",
+                        "specVersion": "1.0",
                         "vectors": [
                             {
                                 "canonical": "0188bac7-4afa-78aa-bb3b-bd1eef28d881",
@@ -76,7 +76,7 @@ json.dump({"ok": True, "value": request["input"].lower()}, sys.stdout)
                     "adapter": str(adapter),
                     "failed": 0,
                     "passed": 2,
-                    "specVersion": "0.1-draft",
+                    "specVersion": "1.0",
                 },
             )
 
@@ -104,7 +104,7 @@ class TypeScriptAdapterTest(unittest.TestCase):
         report = json.loads(result.stdout)
         self.assertEqual(report["failed"], 0)
         self.assertEqual(report["passed"], 35)
-        self.assertEqual(report["specVersion"], "0.1-draft")
+        self.assertEqual(report["specVersion"], "1.0")
 
 
 if __name__ == "__main__":

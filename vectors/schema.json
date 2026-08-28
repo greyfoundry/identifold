@@ -18,7 +18,7 @@
         "ordering"
       ]
     },
-    "specVersion": { "const": "0.1-draft" },
+    "specVersion": { "const": "1.0" },
     "registry": {
       "type": "array",
       "items": { "$ref": "#/$defs/namespace" }

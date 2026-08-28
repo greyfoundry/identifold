@@ -1,6 +1,25 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "specVersion": "0.1-draft",
+  "specVersion": "1.0",
+  "release": {
+    "packageVersion": "1.0.0",
+    "productionExamples": [
+      "packages/typescript/examples/basic.ts",
+      "packages/python/examples/basic.py"
+    ],
+    "requiredImplementations": [
+      "typescript",
+      "python",
+      "java",
+      "csharp",
+      "go",
+      "php",
+      "kotlin",
+      "rust",
+      "ruby",
+      "swift"
+    ]
+  },
   "errorCodes": [
     "allocation_conflict",
     "allocation_exhausted",

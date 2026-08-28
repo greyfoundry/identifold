@@ -19,6 +19,11 @@ interface SpecificationManifest {
     readonly evidence: string;
     readonly id: string;
   }[];
+  readonly release: {
+    readonly packageVersion: string;
+    readonly productionExamples: readonly string[];
+    readonly requiredImplementations: readonly string[];
+  };
   readonly specVersion: string;
 }
 
@@ -59,7 +64,26 @@ describe("specification contract", () => {
     const manifest = JSON.parse(
       readFileSync(manifestUrl, "utf8"),
     ) as SpecificationManifest;
-    expect(manifest.specVersion).toBe("0.1-draft");
+    expect(manifest.specVersion).toBe("1.0");
+    expect(manifest.release).toEqual({
+      packageVersion: "1.0.0",
+      productionExamples: [
+        "packages/typescript/examples/basic.ts",
+        "packages/python/examples/basic.py",
+      ],
+      requiredImplementations: [
+        "typescript",
+        "python",
+        "java",
+        "csharp",
+        "go",
+        "php",
+        "kotlin",
+        "rust",
+        "ruby",
+        "swift",
+      ],
+    });
     expect(manifest.errorCodes).toEqual(identifold.IDENTIFOLD_ERROR_CODES);
     expect(manifest.exclusions).toEqual([
       "authentication",

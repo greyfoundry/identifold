@@ -1,7 +1,7 @@
 {
   "$schema": "./schema.json",
   "kind": "round-trip",
-  "specVersion": "0.1-draft",
+  "specVersion": "1.0",
   "vectors": [
     {
       "namespace": "prefix",

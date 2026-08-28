@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "specVersion": "0.1-draft",
+  "specVersion": "1.0",
   "files": [
     { "file": "machine.json", "kind": "machine", "required": true },
     { "file": "public.json", "kind": "public", "required": true },

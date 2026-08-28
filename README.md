@@ -21,7 +21,7 @@ MID <-> PID
 REF -> storage -> MID
 ```
 
-The project is specification-first. See [SPEC.md](SPEC.md) for the normative contract and [roadmap.md](roadmap.md) for delivery phases and gates.
+The project is specification-first. See [SPEC.md](SPEC.md) for the stable 1.0 normative contract and [roadmap.md](roadmap.md) for delivery phases and gates.
 
 ## TypeScript quick start
 
@@ -62,7 +62,7 @@ An in-memory uniqueness check is not a production allocation boundary for multip
 
 ## Status
 
-Identifold is pre-release. The TypeScript reference implementation is complete for the current draft specification and passes its supported-runtime, conformance, and publication gates. The REF format, vector schema, and error taxonomy remain draft until the specification and conformance suite reach their stable gates. Production uniqueness still depends on the configured transactional storage boundary.
+Identifold 1.0 implementation and release work is in progress. The stable wire contract, vector schema, and error taxonomy are frozen; the release remains pre-release until all required language implementations and hosted checks pass. Production uniqueness depends on the configured transactional storage boundary.
 
 ## Security boundary
 

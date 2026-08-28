@@ -1,7 +1,7 @@
 {
   "$schema": "./schema.json",
   "kind": "references",
-  "specVersion": "0.1-draft",
+  "specVersion": "1.0",
   "registry": [
     {
       "publicPrefix": "order",

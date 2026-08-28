@@ -1,6 +1,6 @@
 # Identifold specification
 
-Status: Draft 0.1
+Status: Stable 1.0
 
 ## 1. Scope
 
@@ -139,8 +139,8 @@ UUIDv7 reveals approximate creation time. Sequential references reveal volume an
 
 Language-neutral JSON vectors are the compatibility contract. Vectors MUST include canonical values, accepted non-canonical inputs, invalid inputs, stable error codes, and deterministic dependency-injected generation cases.
 
-`spec/manifest.json` indexes the normative rule groups, executable canonical examples, stable error taxonomy, and explicit exclusions for this draft. `spec/compatibility.md` defines the compatibility policy.
+`spec/manifest.json` indexes the normative rule groups, executable canonical examples, stable error taxonomy, release requirements, and explicit exclusions for this specification. `spec/compatibility.md` defines the compatibility policy.
 
-Draft versions may change incompatibly. After 1.0, incompatible wire-format or normative behavior changes require a new major specification version.
+Incompatible wire-format or normative behavior changes require a new major specification version.
 
 Supporting documents under `spec/` expand these rules. If supporting prose conflicts with this file, this file controls until the conflict is corrected.
