@@ -1,0 +1,41 @@
+{
+  "name": "@greyfoundry/identifold",
+  "version": "0.0.0",
+  "description": "TypeScript reference implementation of the Identifold specification.",
+  "license": "Apache-2.0",
+  "type": "module",
+  "sideEffects": false,
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "pack:check": "publint && attw --pack . --profile esm-only",
+    "test": "vitest run",
+    "test:coverage": "vitest run --coverage",
+    "typecheck": "tsc -p tsconfig.json --noEmit"
+  },
+  "dependencies": {
+    "typeid-js": "^1.2.0",
+    "uuid": "^14.0.2"
+  },
+  "devDependencies": {
+    "fast-check": "^4.9.0"
+  },
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
+  }
+}

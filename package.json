@@ -1,0 +1,33 @@
+{
+  "name": "identifold-workspace",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Specification and reference implementations for Identifold.",
+  "license": "Apache-2.0",
+  "packageManager": "pnpm@10.33.0",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "build": "pnpm --filter @greyfoundry/identifold build",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "lint": "eslint .",
+    "test": "pnpm --filter @greyfoundry/identifold test",
+    "test:coverage": "pnpm --filter @greyfoundry/identifold test:coverage",
+    "typecheck": "pnpm --filter @greyfoundry/identifold typecheck",
+    "verify": "pnpm format:check && pnpm lint && pnpm typecheck && pnpm test && pnpm build && pnpm --filter @greyfoundry/identifold pack:check"
+  },
+  "devDependencies": {
+    "@arethetypeswrong/cli": "^0.18.5",
+    "@eslint/js": "^10.0.1",
+    "@types/node": "^26.0.0",
+    "@vitest/coverage-v8": "^4.1.11",
+    "eslint": "^10.9.1",
+    "prettier": "^3.9.6",
+    "publint": "^0.3.24",
+    "typescript": "^6.0.3",
+    "typescript-eslint": "^8.68.0",
+    "vitest": "^4.1.11"
+  }
+}

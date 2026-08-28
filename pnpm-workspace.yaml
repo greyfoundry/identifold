@@ -1,0 +1,19 @@
+packages:
+  - packages/*
+
+minimumReleaseAge: 1440
+
+minimumReleaseAgeExclude:
+  - "@arethetypeswrong/cli"
+  - "@eslint/js"
+  - "@types/node"
+  - "@vitest/coverage-v8"
+  - eslint
+  - fast-check
+  - prettier
+  - publint
+  - typeid-js
+  - typescript
+  - typescript-eslint
+  - uuid
+  - vitest
