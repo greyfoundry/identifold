@@ -30,6 +30,18 @@
     ".": {
       "types": "./dist/index.d.ts",
       "import": "./dist/index.js"
+    },
+    "./drizzle": {
+      "types": "./dist/drizzle.d.ts",
+      "import": "./dist/drizzle.js"
+    },
+    "./postgres": {
+      "types": "./dist/postgres.d.ts",
+      "import": "./dist/postgres.js"
+    },
+    "./prisma": {
+      "types": "./dist/prisma.d.ts",
+      "import": "./dist/prisma.js"
     }
   },
   "engines": {
@@ -39,6 +51,7 @@
     "build": "tsc -p tsconfig.build.json",
     "pack:check": "publint && attw --pack . --profile esm-only",
     "test": "vitest run",
+    "test:database": "vitest run test/database.integration.test.ts",
     "test:coverage": "vitest run --coverage",
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },
@@ -46,8 +59,28 @@
     "typeid-js": "^1.2.0",
     "uuid": "^14.0.2"
   },
+  "peerDependencies": {
+    "@prisma/client": ">=7 <9",
+    "drizzle-orm": ">=0.45 <1",
+    "pg": ">=8 <9"
+  },
+  "peerDependenciesMeta": {
+    "@prisma/client": {
+      "optional": true
+    },
+    "drizzle-orm": {
+      "optional": true
+    },
+    "pg": {
+      "optional": true
+    }
+  },
   "devDependencies": {
-    "fast-check": "^4.9.0"
+    "@prisma/client": "^7.10.0",
+    "@types/pg": "^8.23.1",
+    "drizzle-orm": "^0.45.2",
+    "fast-check": "^4.9.0",
+    "pg": "^8.23.0"
   },
   "publishConfig": {
     "access": "public",

@@ -4,12 +4,16 @@ packages:
 minimumReleaseAge: 1440
 
 minimumReleaseAgeExclude:
+  - "@prisma/client"
   - "@arethetypeswrong/cli"
   - "@eslint/js"
   - "@types/node"
+  - "@types/pg"
   - "@vitest/coverage-v8"
   - eslint
   - fast-check
+  - drizzle-orm
+  - pg
   - prettier
   - publint
   - typeid-js
