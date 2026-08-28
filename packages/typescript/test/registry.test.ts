@@ -59,7 +59,7 @@ describe("namespace registry", () => {
     ).toThrow(expect.objectContaining({ code: "duplicate_public_prefix" }));
   });
 
-  it.each(["O", "ORDERCODEX", "ord", "OR-1"])(
+  it.each(["O", "ORDERREFX", "ord", "OR-1"])(
     "rejects invalid REF prefix %s",
     (prefix) => {
       expect(() =>

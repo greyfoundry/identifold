@@ -38,6 +38,10 @@
       "types": "./dist/drizzle.d.ts",
       "import": "./dist/drizzle.js"
     },
+    "./exchange": {
+      "types": "./dist/exchange.d.ts",
+      "import": "./dist/exchange.js"
+    },
     "./json": {
       "types": "./dist/json.d.ts",
       "import": "./dist/json.js"
@@ -65,6 +69,10 @@
     "./prisma": {
       "types": "./dist/prisma.d.ts",
       "import": "./dist/prisma.js"
+    },
+    "./resolver": {
+      "types": "./dist/resolver.d.ts",
+      "import": "./dist/resolver.js"
     },
     "./zod": {
       "types": "./dist/zod.d.ts",

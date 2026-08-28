@@ -4,18 +4,18 @@ This roadmap is the public delivery contract for Identifold. A phase is complete
 
 ## Current status
 
-| Phase | Status   | Remaining gate                                   |
-| ----- | -------- | ------------------------------------------------ |
-| 0     | Complete | All exit gates satisfied                         |
-| 1     | Complete | All exit gates satisfied                         |
-| 2     | Complete | All exit gates satisfied                         |
-| 3     | Complete | All exit gates satisfied                         |
-| 4     | Complete | All exit gates satisfied                         |
-| 5     | Complete | All exit gates satisfied                         |
-| 6     | Complete | All exit gates satisfied                         |
-| 7     | Complete | Python implementation satisfies all exit gates   |
-| 8     | Complete | All exit gates satisfied                         |
-| 9     | Planned  | Phase-specific deliverables and exit gates below |
+| Phase | Status   | Remaining gate                                 |
+| ----- | -------- | ---------------------------------------------- |
+| 0     | Complete | All exit gates satisfied                       |
+| 1     | Complete | All exit gates satisfied                       |
+| 2     | Complete | All exit gates satisfied                       |
+| 3     | Complete | All exit gates satisfied                       |
+| 4     | Complete | All exit gates satisfied                       |
+| 5     | Complete | All exit gates satisfied                       |
+| 6     | Complete | All exit gates satisfied                       |
+| 7     | Complete | Python implementation satisfies all exit gates |
+| 8     | Complete | All exit gates satisfied                       |
+| 9     | Complete | All exit gates satisfied                       |
 
 ## Phase 0: Identity specification
 
@@ -211,3 +211,5 @@ Exit gate:
 ## Stable release gate
 
 Identifold reaches 1.0 only when Phases 0 through 3 are complete, the TypeScript package has been used in a real application, the compatibility policy is published, and an independent implementation can pass the conformance suite.
+
+Current stable-release status: pre-release. Evidence of use in a real application remains required before 1.0.

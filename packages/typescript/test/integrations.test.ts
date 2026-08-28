@@ -3,6 +3,7 @@ import { describe, expect, expectTypeOf, it } from "vitest";
 import {
   createIdentifold,
   createNamespaceRegistry,
+  createReferenceCandidate,
   parseMachineId,
   publicIdFromMachineId,
 } from "../src/index.js";
@@ -19,6 +20,7 @@ import {
 const registry = createNamespaceRegistry([
   { publicPrefix: "user" },
   { publicPrefix: "order", reference: { prefix: "ORD", strategy: "random" } },
+  { publicPrefix: "ticket", reference: { prefix: "TKT", strategy: "random" } },
 ]);
 const mid = parseMachineId("01890a5d-ac96-774b-bf20-69de2b531a31");
 const pid = publicIdFromMachineId(mid, "user");
@@ -33,6 +35,7 @@ describe("developer integrations", () => {
       referenceSchema(registry).safeParse("ORD-0000-0000-00").success,
     ).toBe(false);
     expect(publicIdSchema("order").safeParse(pid).success).toBe(false);
+    expect(machineIdSchema.safeParse("bad").success).toBe(false);
   });
 
   it("publishes stable OpenAPI schemas without security semantics", () => {
@@ -40,6 +43,7 @@ describe("developer integrations", () => {
     expect(components.schemas.MachineId.format).toBe("uuid");
     expect(components.schemas.PublicId["x-identifold-namespaces"]).toEqual([
       "order",
+      "ticket",
       "user",
     ]);
     expect(JSON.stringify(components)).not.toMatch(/auth|permission/i);
@@ -60,6 +64,32 @@ describe("developer integrations", () => {
         registry,
       ),
     ).toThrow(expect.objectContaining({ code: "invalid_pid" }));
+
+    const orderPid = publicIdFromMachineId(mid, "order");
+    const orderReference = createReferenceCandidate(registry, "order", {
+      randomBytes: (size) => new Uint8Array(size),
+    });
+    expect(
+      deserializeIdentity(
+        serializeIdentity({ mid, pid: orderPid, ref: orderReference }),
+        registry,
+      ),
+    ).toEqual({ mid, pid: orderPid, ref: orderReference });
+    expect(() => deserializeIdentity(null, registry)).toThrow(
+      expect.objectContaining({ code: "invalid_kind" }),
+    );
+    expect(() =>
+      deserializeIdentity({ mid, pid: orderPid, ref: 42 }, registry),
+    ).toThrow(expect.objectContaining({ code: "invalid_ref" }));
+    const ticketReference = createReferenceCandidate(registry, "ticket", {
+      randomBytes: (size) => new Uint8Array(size),
+    });
+    expect(() =>
+      deserializeIdentity(
+        { mid, pid: orderPid, ref: ticketReference },
+        registry,
+      ),
+    ).toThrow(expect.objectContaining({ code: "invalid_ref" }));
   });
 
   it("maps malformed boundary input to a stable, non-sensitive error", () => {
@@ -74,6 +104,9 @@ describe("developer integrations", () => {
     expect(() => parsePid(mid)).toThrow(
       expect.objectContaining({ code: "unexpected_identifier_kind" }),
     );
+    expect(() => parsePid(42)).toThrow(
+      expect.objectContaining({ code: "invalid_identifier" }),
+    );
   });
 
   it("emits bounded structured fields", () => {
@@ -82,6 +115,22 @@ describe("developer integrations", () => {
       "identifier.kind": "pid",
       "identifier.namespace": "user",
       "identifier.uuid_version": 7,
+    });
+    expect(
+      identifierLogFields(createIdentifold({ registry }).parse(mid)),
+    ).toEqual({
+      "identifier.kind": "mid",
+      "identifier.uuid_version": 7,
+    });
+    const reference = createReferenceCandidate(registry, "order", {
+      randomBytes: (size) => new Uint8Array(size),
+    });
+    expect(
+      identifierLogFields(createIdentifold({ registry }).parse(reference)),
+    ).toEqual({
+      "identifier.kind": "ref",
+      "identifier.namespace": "order",
+      "identifier.reference_strategy": "random",
     });
   });
 });
