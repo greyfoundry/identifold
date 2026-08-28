@@ -6,8 +6,8 @@ Every implementation listed here targets the stable Identifold 1.0 wire contract
 | ------------------------- | --------------------- | --------------------------------------- |
 | TypeScript and JavaScript | `packages/typescript` | Conformant; production example verified |
 | Python                    | `packages/python`     | Conformant; production example verified |
-| Java                      | `packages/java`       | In progress                             |
-| C#                        | `packages/csharp`     | In progress                             |
+| Java                      | `packages/java`       | Conformant                              |
+| C#                        | `packages/csharp`     | Conformant                              |
 | Go                        | `packages/go`         | Conformant                              |
 | PHP                       | `packages/php`        | In progress                             |
 | Kotlin                    | `packages/kotlin`     | In progress                             |

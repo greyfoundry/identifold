@@ -1,0 +1,12 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net9.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <PackageId>Greyfoundry.Identifold</PackageId>
+    <Version>1.0.0</Version>
+    <Description>Identifold 1.0 identifiers for .NET</Description>
+    <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
+    <RepositoryUrl>https://github.com/greyfoundry/identifold</RepositoryUrl>
+  </PropertyGroup>
+</Project>
