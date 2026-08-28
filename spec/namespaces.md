@@ -22,7 +22,9 @@ Registry construction validates the complete collection before returning it. It 
 - REF prefixes outside 2 to 8 ASCII letters;
 - random profiles with unsupported lengths;
 - sequential widths outside 4 to 18;
-- attempts to allocate a sequential namespace without a transactional allocator.
+- unknown reference strategies or unsupported sequential scope values.
+
+Registry construction validates definitions only. A service attempts allocation later and MUST reject sequential creation when no transactional allocator is configured.
 
 Definitions and the returned registry MUST be immutable from the caller's perspective.
 

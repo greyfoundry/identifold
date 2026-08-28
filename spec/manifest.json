@@ -1,0 +1,121 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "specVersion": "0.1-draft",
+  "errorCodes": [
+    "allocation_conflict",
+    "allocation_exhausted",
+    "allocation_required",
+    "ambiguous_ref_prefix",
+    "duplicate_public_prefix",
+    "duplicate_ref_prefix",
+    "invalid_allocation_policy",
+    "invalid_checksum",
+    "invalid_kind",
+    "invalid_mid",
+    "invalid_namespace_definition",
+    "invalid_pid",
+    "invalid_public_prefix",
+    "invalid_random_source",
+    "invalid_ref",
+    "invalid_ref_length",
+    "invalid_ref_prefix",
+    "invalid_ref_symbol",
+    "invalid_uuid_version",
+    "sequence_overflow",
+    "unknown_namespace"
+  ],
+  "examples": [
+    {
+      "id": "mid-uppercase-normalization",
+      "operation": "normalize",
+      "input": "019D4C72-C910-7A84-B313-53C3AC61A32F",
+      "expected": "019d4c72-c910-7a84-b313-53c3ac61a32f",
+      "registry": []
+    },
+    {
+      "id": "pid-canonical-normalization",
+      "operation": "normalize",
+      "input": "order_01kn675j8gfa2b64tkrep638sf",
+      "expected": "order_01kn675j8gfa2b64tkrep638sf",
+      "registry": [{ "publicPrefix": "order" }]
+    },
+    {
+      "id": "random-ref-normalization",
+      "operation": "normalize",
+      "input": "ord7k4m2p8q3d9",
+      "expected": "ORD-7K4M-2P8Q-3D-9",
+      "registry": [
+        {
+          "publicPrefix": "order",
+          "reference": { "prefix": "ORD", "strategy": "random" }
+        }
+      ]
+    },
+    {
+      "id": "sequential-ref-normalization",
+      "operation": "normalize",
+      "input": "inv2026001842m",
+      "expected": "INV-2026-001842-M",
+      "registry": [
+        {
+          "publicPrefix": "invoice",
+          "reference": {
+            "prefix": "INV",
+            "scope": "calendar-year",
+            "strategy": "sequence",
+            "width": 6
+          }
+        }
+      ]
+    }
+  ],
+  "rules": [
+    {
+      "id": "identity-relationships",
+      "evidence": "packages/typescript/test/service.test.ts"
+    },
+    {
+      "id": "machine-identifiers",
+      "evidence": "vectors/machine.json"
+    },
+    {
+      "id": "public-identifiers",
+      "evidence": "vectors/public.json"
+    },
+    {
+      "id": "random-references",
+      "evidence": "vectors/references.json"
+    },
+    {
+      "id": "sequential-references",
+      "evidence": "vectors/sequential.json"
+    },
+    {
+      "id": "namespace-registry",
+      "evidence": "packages/typescript/test/registry.test.ts"
+    },
+    {
+      "id": "unified-operations",
+      "evidence": "packages/typescript/test/unified.test.ts"
+    },
+    {
+      "id": "stable-errors",
+      "evidence": "vectors/invalid.json"
+    },
+    {
+      "id": "security-boundaries",
+      "evidence": "packages/typescript/test/service.test.ts"
+    },
+    {
+      "id": "compatibility-and-versioning",
+      "evidence": "spec/compatibility.md"
+    }
+  ],
+  "exclusions": [
+    "authentication",
+    "authorization",
+    "automatic-legacy-conversion",
+    "custom-wire-formats",
+    "distributed-reference-resolution"
+  ]
+}
