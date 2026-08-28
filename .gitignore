@@ -6,8 +6,8 @@ __pycache__/
 .venv/
 build/
 target/
-bin/
-obj/
+packages/csharp/**/bin/
+packages/csharp/**/obj/
 .gradle/
 *.egg-info/
 *.py[cod]
