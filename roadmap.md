@@ -8,7 +8,7 @@ This roadmap is the public delivery contract for Identifold. A phase is complete
 | ----- | ----------- | --------------------------------------------------------------------------- |
 | 0     | In review   | Stabilization review and resolution of any reported specification conflicts |
 | 1     | Complete    | All exit gates satisfied                                                    |
-| 2     | In progress | Complete the remaining dependency-injection and supported-runtime gates     |
+| 2     | Complete    | All exit gates satisfied                                                    |
 | 3     | In progress | Expanded corpus, compatibility policy, and an independent runner            |
 | 4-9   | Planned     | Phase-specific deliverables and exit gates below                            |
 

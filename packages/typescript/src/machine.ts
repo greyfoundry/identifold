@@ -10,6 +10,8 @@ declare const machineIdBrand: unique symbol;
 
 export type MachineId = string & { readonly [machineIdBrand]: true };
 
+export type MachineIdSource = () => MachineId;
+
 export function createMachineId(): MachineId {
   return createUuidV7() as MachineId;
 }

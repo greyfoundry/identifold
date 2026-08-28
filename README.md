@@ -48,6 +48,8 @@ Namespaces with a human-reference configuration require an atomic `ReferenceStor
 
 Sequential namespaces use a transactional `SequenceAllocator`. Its `allocate` operation must advance the namespace-and-scope counter and bind the allocated value to the supplied MID in the same transaction. Calendar-year scopes use the UTC year.
 
+The TypeScript implementation exposes typed injection points for MID creation, clocks, REF randomness, atomic random-reference reservation, and sequential allocation. Injected MID values are validated before any storage operation. Default UUIDv7 generation remains delegated to `uuid`, while PID encoding remains delegated to `typeid-js`.
+
 ## Storage responsibilities
 
 - Store the MID as the canonical identity, preferably in a native UUID or 16-byte database type.
@@ -60,7 +62,7 @@ An in-memory uniqueness check is not a production allocation boundary for multip
 
 ## Status
 
-Identifold is pre-release. MID and PID behavior follows the cited upstream standards. The REF format, unified TypeScript API, vector schema, and error taxonomy remain draft until the specification and conformance suite reach their stable gates. Random and sequential REF strategies are implemented by the TypeScript package; production uniqueness still depends on the configured transactional storage boundary.
+Identifold is pre-release. The TypeScript reference implementation is complete for the current draft specification and passes its supported-runtime, conformance, and publication gates. The REF format, vector schema, and error taxonomy remain draft until the specification and conformance suite reach their stable gates. Production uniqueness still depends on the configured transactional storage boundary.
 
 ## Security boundary
 

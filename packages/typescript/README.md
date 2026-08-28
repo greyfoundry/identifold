@@ -66,3 +66,15 @@ const invoices = createIdentifold({
 ```
 
 Allocator values are `bigint` so widths up to 18 decimal digits remain exact. Calendar-year scopes are derived from the UTC year and can use an injected `now` function in deterministic tests.
+
+## Dependency injection
+
+`createIdentifold` keeps volatile and persistent operations behind explicit, typed boundaries:
+
+- `machineIdSource` supplies a MID and is validated as UUIDv7 before use;
+- `now` supplies the clock used for calendar-year sequence scopes;
+- `randomBytes` supplies random REF bytes;
+- `referenceStore` atomically reserves random references; and
+- `sequenceAllocator` transactionally allocates and binds sequential references.
+
+The default MID source delegates UUIDv7 generation to `uuid`. PID encoding and decoding delegate to `typeid-js` so the package does not maintain separate implementations of either standard. Injected MID and random sources are intended for deterministic tests and controlled platform integrations; production sources must retain the security guarantees described in the specification.

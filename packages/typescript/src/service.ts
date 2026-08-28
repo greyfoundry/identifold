@@ -1,6 +1,6 @@
 import { IdentifoldError } from "./errors.js";
 import { createMachineId, parseMachineId } from "./machine.js";
-import type { MachineId } from "./machine.js";
+import type { MachineId, MachineIdSource } from "./machine.js";
 import { parsePublicId, publicIdFromMachineId } from "./public.js";
 import type { PublicId } from "./public.js";
 import {
@@ -40,6 +40,7 @@ export interface SequenceAllocator {
 }
 
 export interface IdentifoldOptions {
+  readonly machineIdSource?: MachineIdSource;
   readonly maxReferenceAttempts?: number;
   readonly now?: () => Date;
   readonly randomBytes?: RandomByteSource;
@@ -108,6 +109,7 @@ export interface Identifold {
 
 export function createIdentifold(options: IdentifoldOptions): Identifold {
   const maxReferenceAttempts = options.maxReferenceAttempts ?? 8;
+  const machineIdSource = options.machineIdSource ?? createMachineId;
   if (
     !Number.isSafeInteger(maxReferenceAttempts) ||
     maxReferenceAttempts < 1 ||
@@ -132,10 +134,13 @@ export function createIdentifold(options: IdentifoldOptions): Identifold {
       }
 
       const referenceDefinition = definition.reference;
-      if (referenceDefinition === undefined) {
-        const mid = createMachineId();
+      const createBaseIdentity = () => {
+        const mid = parseMachineId(machineIdSource());
         const pid = publicIdFromMachineId(mid, namespace);
-        return Object.freeze({ mid, pid });
+        return { mid, pid };
+      };
+      if (referenceDefinition === undefined) {
+        return Object.freeze(createBaseIdentity());
       }
       if (referenceDefinition.strategy === "sequence") {
         const sequenceAllocator = options.sequenceAllocator;
@@ -146,8 +151,7 @@ export function createIdentifold(options: IdentifoldOptions): Identifold {
           );
         }
 
-        const mid = createMachineId();
-        const pid = publicIdFromMachineId(mid, namespace);
+        const { mid, pid } = createBaseIdentity();
         const scope =
           referenceDefinition.scope === "calendar-year"
             ? currentUtcYear(options.now)
@@ -169,6 +173,7 @@ export function createIdentifold(options: IdentifoldOptions): Identifold {
         );
         return Object.freeze({ mid, pid, ref });
       }
+
       const referenceStore = options.referenceStore;
       if (referenceStore === undefined) {
         throw new IdentifoldError(
@@ -176,9 +181,7 @@ export function createIdentifold(options: IdentifoldOptions): Identifold {
           "Human references require an atomic reservation store",
         );
       }
-
-      const mid = createMachineId();
-      const pid = publicIdFromMachineId(mid, namespace);
+      const { mid, pid } = createBaseIdentity();
 
       for (let attempt = 0; attempt < maxReferenceAttempts; attempt += 1) {
         const reference = createReferenceCandidate(

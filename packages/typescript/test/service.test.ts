@@ -9,6 +9,7 @@ import {
 import type {
   HumanReference,
   MachineId,
+  MachineIdSource,
   ReferenceReservation,
   ReferenceStore,
   SequenceAllocationRequest,
@@ -95,6 +96,49 @@ describe("identity service", () => {
 
     expect(identity).not.toHaveProperty("ref");
     expect(parsePublicId(identity.pid, "user").machineId).toBe(identity.mid);
+  });
+
+  it("uses an injected MID source for every representation", async () => {
+    const machineId = parseMachineId("0188bac7-4afa-78aa-bc3b-bd1eef28d881");
+    const machineIdSource: MachineIdSource = () => machineId;
+    const referenceStore = new InMemoryReferenceStore();
+    const ids = createIdentifold({
+      machineIdSource,
+      randomBytes: zeroBytes,
+      referenceStore,
+      registry,
+    });
+
+    const identity = await ids.create("order");
+
+    expect(identity).toEqual({
+      mid: machineId,
+      pid: "order_01h2xcejqtf2nbrexx3vqjhp41",
+      ref: "ORD-0000-0000-00-0",
+    });
+    expect(referenceStore.resolve(requireReference(identity.ref))).toBe(
+      machineId,
+    );
+  });
+
+  it("rejects an invalid injected MID before reserving a reference", async () => {
+    let reservationAttempted = false;
+    const ids = createIdentifold({
+      machineIdSource: () => "not-a-uuid" as MachineId,
+      randomBytes: zeroBytes,
+      referenceStore: {
+        reserve() {
+          reservationAttempted = true;
+          return Promise.resolve(true);
+        },
+      },
+      registry,
+    });
+
+    await expect(ids.create("order")).rejects.toEqual(
+      expect.objectContaining({ code: "invalid_mid" }),
+    );
+    expect(reservationAttempted).toBe(false);
   });
 
   it("requires an allocation boundary before returning a REF", async () => {
