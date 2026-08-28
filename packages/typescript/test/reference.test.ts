@@ -3,8 +3,10 @@ import { describe, expect, it } from "vitest";
 
 import {
   calculateReferenceCheckSymbol,
+  calculateSequentialCheckSymbol,
   createNamespaceRegistry,
   createReferenceCandidate,
+  formatSequentialReference,
   normalizeReference,
   parseReference,
 } from "../src/index.js";
@@ -22,6 +24,21 @@ describe("human references", () => {
         profile: "compact",
         strategy: "random",
       },
+    },
+  ]);
+  const sequentialRegistry = createNamespaceRegistry([
+    {
+      publicPrefix: "invoice",
+      reference: {
+        prefix: "INV",
+        scope: "calendar-year",
+        strategy: "sequence",
+        width: 6,
+      },
+    },
+    {
+      publicPrefix: "receipt",
+      reference: { prefix: "RCT", strategy: "sequence", width: 4 },
     },
   ]);
 
@@ -195,9 +212,6 @@ describe("human references", () => {
     expect(() => createReferenceCandidate(unsupported, "invoice")).toThrow(
       expect.objectContaining({ code: "invalid_namespace_definition" }),
     );
-    expect(() => parseReference("INV-0000-01-1", unsupported)).toThrow(
-      expect.objectContaining({ code: "invalid_namespace_definition" }),
-    );
   });
 
   it("rejects an unknown hyphenless REF namespace", () => {
@@ -240,5 +254,83 @@ describe("human references", () => {
         },
       ),
     );
+  });
+
+  it("calculates the decimal modulo-37 sequential check symbol", () => {
+    expect(calculateSequentialCheckSymbol("2026001842")).toBe("M");
+    expect(calculateSequentialCheckSymbol("000001")).toBe("1");
+  });
+
+  it("formats and parses a calendar-year sequential reference", () => {
+    const reference = formatSequentialReference(
+      sequentialRegistry,
+      "invoice",
+      1842n,
+      "2026",
+    );
+
+    expect(reference).toBe("INV-2026-001842-M");
+    expect(parseReference(reference, sequentialRegistry)).toEqual({
+      value: reference,
+      namespace: "invoice",
+      payload: "2026001842",
+      checkSymbol: "M",
+      scope: "2026",
+      sequence: "001842",
+      strategy: "sequence",
+    });
+  });
+
+  it("formats and parses an unscoped sequential reference", () => {
+    const reference = formatSequentialReference(
+      sequentialRegistry,
+      "receipt",
+      1n,
+    );
+
+    expect(reference).toBe("RCT-0001-1");
+    expect(parseReference(reference, sequentialRegistry)).toEqual({
+      value: reference,
+      namespace: "receipt",
+      payload: "0001",
+      checkSymbol: "1",
+      sequence: "0001",
+      strategy: "sequence",
+    });
+  });
+
+  it("normalizes lowercase and hyphenless sequential input", () => {
+    expect(normalizeReference("inv2026001842m", sequentialRegistry)).toBe(
+      "INV-2026-001842-M",
+    );
+  });
+
+  it("rejects corrupted and malformed sequential references", () => {
+    expect(() =>
+      parseReference("INV-2026-001842-X", sequentialRegistry),
+    ).toThrow(expect.objectContaining({ code: "invalid_checksum" }));
+    expect(() =>
+      parseReference("INV-2026-00I842-M", sequentialRegistry),
+    ).toThrow(expect.objectContaining({ code: "invalid_ref_symbol" }));
+    expect(() => parseReference("INV-26-001842-M", sequentialRegistry)).toThrow(
+      expect.objectContaining({ code: "invalid_ref_length" }),
+    );
+  });
+
+  it("rejects sequential overflow and invalid scopes", () => {
+    expect(() =>
+      formatSequentialReference(
+        sequentialRegistry,
+        "invoice",
+        1_000_000n,
+        "2026",
+      ),
+    ).toThrow(expect.objectContaining({ code: "sequence_overflow" }));
+    expect(() =>
+      formatSequentialReference(sequentialRegistry, "invoice", 1n, "26"),
+    ).toThrow(expect.objectContaining({ code: "invalid_ref" }));
+    expect(() =>
+      formatSequentialReference(sequentialRegistry, "receipt", 1n, "2026"),
+    ).toThrow(expect.objectContaining({ code: "invalid_ref" }));
   });
 });

@@ -6,7 +6,9 @@ export { parsePublicId, publicIdFromMachineId } from "./public.js";
 export type { ParsedPublicId, PublicId } from "./public.js";
 export {
   calculateReferenceCheckSymbol,
+  calculateSequentialCheckSymbol,
   createReferenceCandidate,
+  formatSequentialReference,
   normalizeReference,
   parseReference,
 } from "./reference.js";
@@ -42,4 +44,6 @@ export type {
   ParsedPublicIdentifier,
   ReferenceReservation,
   ReferenceStore,
+  SequenceAllocationRequest,
+  SequenceAllocator,
 } from "./service.js";

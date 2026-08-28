@@ -1,0 +1,56 @@
+{
+  "$schema": "./schema.json",
+  "kind": "sequential",
+  "specVersion": "0.1-draft",
+  "registry": [
+    {
+      "publicPrefix": "invoice",
+      "reference": {
+        "prefix": "INV",
+        "scope": "calendar-year",
+        "strategy": "sequence",
+        "width": 6
+      }
+    },
+    {
+      "publicPrefix": "receipt",
+      "reference": {
+        "prefix": "RCT",
+        "strategy": "sequence",
+        "width": 4
+      }
+    },
+    {
+      "publicPrefix": "ledger",
+      "reference": {
+        "prefix": "LDG",
+        "strategy": "sequence",
+        "width": 18
+      }
+    }
+  ],
+  "vectors": [
+    {
+      "namespace": "invoice",
+      "scope": "2026",
+      "sequence": "1842",
+      "reference": "INV-2026-001842-M",
+      "payload": "2026001842",
+      "checkSymbol": "M"
+    },
+    {
+      "namespace": "receipt",
+      "sequence": "1",
+      "reference": "RCT-0001-1",
+      "payload": "0001",
+      "checkSymbol": "1"
+    },
+    {
+      "namespace": "ledger",
+      "sequence": "999999999999999999",
+      "reference": "LDG-999999999999999999-0",
+      "payload": "999999999999999999",
+      "checkSymbol": "0"
+    }
+  ]
+}

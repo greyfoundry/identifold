@@ -46,6 +46,8 @@ ids.normalize(identity.mid.toUpperCase());
 
 Namespaces with a human-reference configuration require an atomic `ReferenceStore` before `create` returns a REF. Candidate generation alone does not establish uniqueness.
 
+Sequential namespaces use a transactional `SequenceAllocator`. Its `allocate` operation must advance the namespace-and-scope counter and bind the allocated value to the supplied MID in the same transaction. Calendar-year scopes use the UTC year.
+
 ## Storage responsibilities
 
 - Store the MID as the canonical identity, preferably in a native UUID or 16-byte database type.
@@ -58,7 +60,7 @@ An in-memory uniqueness check is not a production allocation boundary for multip
 
 ## Status
 
-Identifold is pre-release. MID and PID behavior follows the cited upstream standards. The REF format, unified TypeScript API, vector schema, and error taxonomy remain draft until the specification and conformance suite reach their stable gates. Sequential REF allocation is specified but is not yet implemented by the TypeScript package.
+Identifold is pre-release. MID and PID behavior follows the cited upstream standards. The REF format, unified TypeScript API, vector schema, and error taxonomy remain draft until the specification and conformance suite reach their stable gates. Random and sequential REF strategies are implemented by the TypeScript package; production uniqueness still depends on the configured transactional storage boundary.
 
 ## Security boundary
 

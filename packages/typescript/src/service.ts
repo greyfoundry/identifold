@@ -3,7 +3,11 @@ import { createMachineId, parseMachineId } from "./machine.js";
 import type { MachineId } from "./machine.js";
 import { parsePublicId, publicIdFromMachineId } from "./public.js";
 import type { PublicId } from "./public.js";
-import { createReferenceCandidate, parseReference } from "./reference.js";
+import {
+  createReferenceCandidate,
+  formatSequentialReference,
+  parseReference,
+} from "./reference.js";
 import type { HumanReference, RandomByteSource } from "./reference.js";
 import type { NamespaceRegistry } from "./registry.js";
 import type { IdentifoldErrorCode } from "./errors.js";
@@ -18,11 +22,30 @@ export interface ReferenceStore {
   reserve(reservation: ReferenceReservation): Promise<boolean>;
 }
 
+export interface SequenceAllocationRequest {
+  readonly machineId: MachineId;
+  readonly namespace: string;
+  readonly referencePrefix: string;
+  readonly scope: string | null;
+  readonly width: number;
+}
+
+export interface SequenceAllocator {
+  /**
+   * Atomically advances the namespace-and-scope counter, binds that sequence
+   * to the supplied MID, and returns the committed non-negative value. Values
+   * wider than the requested width must be rejected before commit.
+   */
+  allocate(request: SequenceAllocationRequest): Promise<bigint>;
+}
+
 export interface IdentifoldOptions {
   readonly maxReferenceAttempts?: number;
+  readonly now?: () => Date;
   readonly randomBytes?: RandomByteSource;
   readonly referenceStore?: ReferenceStore;
   readonly registry: NamespaceRegistry;
+  readonly sequenceAllocator?: SequenceAllocator;
 }
 
 export interface Identity<Namespace extends string = string> {
@@ -51,6 +74,8 @@ export interface ParsedHumanReference {
   readonly kind: "ref";
   readonly namespace: string;
   readonly payload: string;
+  readonly scope?: string;
+  readonly sequence?: string;
   readonly strategy: "random" | "sequence";
   readonly value: HumanReference;
 }
@@ -113,10 +138,36 @@ export function createIdentifold(options: IdentifoldOptions): Identifold {
         return Object.freeze({ mid, pid });
       }
       if (referenceDefinition.strategy === "sequence") {
-        throw new IdentifoldError(
-          "allocation_required",
-          "Sequential references require an external allocator",
+        const sequenceAllocator = options.sequenceAllocator;
+        if (sequenceAllocator === undefined) {
+          throw new IdentifoldError(
+            "allocation_required",
+            "Sequential references require an external allocator",
+          );
+        }
+
+        const mid = createMachineId();
+        const pid = publicIdFromMachineId(mid, namespace);
+        const scope =
+          referenceDefinition.scope === "calendar-year"
+            ? currentUtcYear(options.now)
+            : null;
+        const sequence = await sequenceAllocator.allocate(
+          Object.freeze({
+            machineId: mid,
+            namespace,
+            referencePrefix: referenceDefinition.prefix,
+            scope,
+            width: referenceDefinition.width,
+          }),
         );
+        const ref = formatSequentialReference(
+          options.registry,
+          namespace,
+          sequence,
+          scope ?? undefined,
+        );
+        return Object.freeze({ mid, pid, ref });
       }
       const referenceStore = options.referenceStore;
       if (referenceStore === undefined) {
@@ -243,6 +294,18 @@ export function createIdentifold(options: IdentifoldOptions): Identifold {
       }
     },
   });
+}
+
+function currentUtcYear(now: (() => Date) | undefined): string {
+  const date = now?.() ?? new Date();
+  const year = date.getUTCFullYear();
+  if (Number.isNaN(date.getTime()) || year < 0 || year > 9999) {
+    throw new IdentifoldError(
+      "invalid_allocation_policy",
+      "Clock returned a date outside the supported calendar-year range",
+    );
+  }
+  return year.toString().padStart(4, "0");
 }
 
 function classifyIdentifier(value: string): IdentifierKind {

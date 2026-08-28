@@ -10,6 +10,15 @@
         "profile": "standard",
         "strategy": "random"
       }
+    },
+    {
+      "publicPrefix": "invoice",
+      "reference": {
+        "prefix": "INV",
+        "scope": "calendar-year",
+        "strategy": "sequence",
+        "width": 6
+      }
     }
   ],
   "vectors": [
@@ -22,6 +31,11 @@
       "representation": "ref",
       "input": "ordol00000000g",
       "normalized": "ORD-0100-0000-00-G"
+    },
+    {
+      "representation": "ref",
+      "input": "inv2026001842m",
+      "normalized": "INV-2026-001842-M"
     }
   ]
 }

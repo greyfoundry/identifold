@@ -7,7 +7,14 @@
   "properties": {
     "$schema": { "type": "string" },
     "kind": {
-      "enum": ["machine", "public", "references", "normalization", "invalid"]
+      "enum": [
+        "machine",
+        "public",
+        "references",
+        "sequential",
+        "normalization",
+        "invalid"
+      ]
     },
     "specVersion": { "const": "0.1-draft" },
     "registry": {
@@ -50,6 +57,15 @@
     {
       "required": ["registry"],
       "properties": {
+        "kind": { "const": "sequential" },
+        "vectors": {
+          "items": { "$ref": "#/$defs/sequentialVector" }
+        }
+      }
+    },
+    {
+      "required": ["registry"],
+      "properties": {
         "kind": { "const": "normalization" },
         "vectors": {
           "items": { "$ref": "#/$defs/normalizationVector" }
@@ -73,14 +89,29 @@
       "properties": {
         "publicPrefix": { "type": "string" },
         "reference": {
-          "type": "object",
-          "required": ["prefix", "strategy"],
-          "properties": {
-            "prefix": { "type": "string" },
-            "profile": { "enum": ["compact", "standard", "high"] },
-            "strategy": { "const": "random" }
-          },
-          "additionalProperties": false
+          "oneOf": [
+            {
+              "type": "object",
+              "required": ["prefix", "strategy"],
+              "properties": {
+                "prefix": { "type": "string" },
+                "profile": { "enum": ["compact", "standard", "high"] },
+                "strategy": { "const": "random" }
+              },
+              "additionalProperties": false
+            },
+            {
+              "type": "object",
+              "required": ["prefix", "strategy", "width"],
+              "properties": {
+                "prefix": { "type": "string" },
+                "scope": { "enum": ["calendar-year", "none"] },
+                "strategy": { "const": "sequence" },
+                "width": { "type": "integer", "minimum": 4, "maximum": 18 }
+              },
+              "additionalProperties": false
+            }
+          ]
         }
       },
       "additionalProperties": false
@@ -123,6 +154,25 @@
           "items": { "type": "integer", "minimum": 0, "maximum": 255 }
         },
         "reference": { "type": "string" }
+      },
+      "additionalProperties": false
+    },
+    "sequentialVector": {
+      "type": "object",
+      "required": [
+        "checkSymbol",
+        "namespace",
+        "payload",
+        "reference",
+        "sequence"
+      ],
+      "properties": {
+        "checkSymbol": { "type": "string" },
+        "namespace": { "type": "string" },
+        "payload": { "type": "string" },
+        "reference": { "type": "string" },
+        "scope": { "type": "string", "pattern": "^[0-9]{4}$" },
+        "sequence": { "type": "string", "pattern": "^[0-9]+$" }
       },
       "additionalProperties": false
     },

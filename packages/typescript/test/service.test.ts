@@ -11,6 +11,8 @@ import type {
   MachineId,
   ReferenceReservation,
   ReferenceStore,
+  SequenceAllocationRequest,
+  SequenceAllocator,
 } from "../src/index.js";
 
 class InMemoryReferenceStore implements ReferenceStore {
@@ -42,6 +44,17 @@ function requireReference(
     throw new Error("Expected identity to contain a human reference");
   }
   return reference;
+}
+
+class RecordingSequenceAllocator implements SequenceAllocator {
+  readonly requests: SequenceAllocationRequest[] = [];
+
+  constructor(readonly sequence: bigint) {}
+
+  allocate(request: SequenceAllocationRequest): Promise<bigint> {
+    this.requests.push(request);
+    return Promise.resolve(this.sequence);
+  }
 }
 
 describe("identity service", () => {
@@ -103,6 +116,80 @@ describe("identity service", () => {
 
     await expect(ids.create("invoice")).rejects.toEqual(
       expect.objectContaining({ code: "allocation_required" }),
+    );
+  });
+
+  it("allocates and binds a calendar-year sequential reference", async () => {
+    const sequentialRegistry = createNamespaceRegistry([
+      {
+        publicPrefix: "invoice",
+        reference: {
+          prefix: "INV",
+          scope: "calendar-year",
+          strategy: "sequence",
+          width: 6,
+        },
+      },
+    ]);
+    const sequenceAllocator = new RecordingSequenceAllocator(1842n);
+    const ids = createIdentifold({
+      now: () => new Date("2026-08-28T12:00:00Z"),
+      registry: sequentialRegistry,
+      sequenceAllocator,
+    });
+
+    const identity = await ids.create("invoice");
+
+    expect(identity.ref).toBe("INV-2026-001842-M");
+    expect(sequenceAllocator.requests).toEqual([
+      {
+        machineId: identity.mid,
+        namespace: "invoice",
+        referencePrefix: "INV",
+        scope: "2026",
+        width: 6,
+      },
+    ]);
+  });
+
+  it("allocates an unscoped sequential reference without reading the clock", async () => {
+    const sequentialRegistry = createNamespaceRegistry([
+      {
+        publicPrefix: "receipt",
+        reference: { prefix: "RCT", strategy: "sequence", width: 4 },
+      },
+    ]);
+    const sequenceAllocator = new RecordingSequenceAllocator(1n);
+    const ids = createIdentifold({
+      now: () => {
+        throw new Error("Clock must not be read for an unscoped sequence");
+      },
+      registry: sequentialRegistry,
+      sequenceAllocator,
+    });
+
+    const identity = await ids.create("receipt");
+
+    expect(identity.ref).toBe("RCT-0001-1");
+    expect(sequenceAllocator.requests[0]).toEqual(
+      expect.objectContaining({ scope: null }),
+    );
+  });
+
+  it("rejects an allocated sequence that exceeds its fixed width", async () => {
+    const sequentialRegistry = createNamespaceRegistry([
+      {
+        publicPrefix: "invoice",
+        reference: { prefix: "INV", strategy: "sequence", width: 4 },
+      },
+    ]);
+    const ids = createIdentifold({
+      registry: sequentialRegistry,
+      sequenceAllocator: new RecordingSequenceAllocator(10_000n),
+    });
+
+    await expect(ids.create("invoice")).rejects.toEqual(
+      expect.objectContaining({ code: "sequence_overflow" }),
     );
   });
 

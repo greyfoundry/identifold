@@ -75,7 +75,7 @@ Parsers MUST accept lowercase input, omitted hyphens, and the Crockford data ali
 
 Random payload generation MUST use a cryptographically secure random-number generator and unbiased sampling. A unique storage constraint plus bounded retry is REQUIRED before uniqueness may be claimed.
 
-Sequential references use an external transactional allocator. Their canonical grammar and allocation contract are defined in `spec/human-reference.md`; a process-local counter is not a conforming allocator for shared production state.
+Sequential references use an external transactional allocator. Their canonical grammar and allocation contract are defined in `spec/human-reference.md`; the allocator MUST advance its namespace-and-scope counter and bind the allocated value to the MID in one transaction. Calendar-year scopes use the UTC year. A process-local counter is not a conforming allocator for shared production state.
 
 ## 6. Namespace registry
 

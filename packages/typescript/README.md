@@ -16,6 +16,15 @@ const registry = createNamespaceRegistry([
     publicPrefix: "order",
     reference: { prefix: "ORD", strategy: "random" },
   },
+  {
+    publicPrefix: "invoice",
+    reference: {
+      prefix: "INV",
+      scope: "calendar-year",
+      strategy: "sequence",
+      width: 6,
+    },
+  },
 ]);
 
 const users = createIdentifold({ registry });
@@ -43,4 +52,17 @@ const order = await orders.create("order");
 
 The service also exposes `parse`, `validate`, `inspect`, and `normalize`. Parsing a REF checks its format and checksum but never implies that the reference exists in storage. `inspect` reports REF resolution as `not-requested` because storage lookup is a separate application operation.
 
-Sequential REF configuration is accepted by the draft registry but allocation and parsing are not yet implemented by this package.
+Sequential namespaces require an allocator that atomically advances and binds each scoped sequence to the supplied MID:
+
+```ts
+const invoices = createIdentifold({
+  registry,
+  sequenceAllocator: {
+    async allocate(request) {
+      return database.allocateAndBindSequence(request);
+    },
+  },
+});
+```
+
+Allocator values are `bigint` so widths up to 18 decimal digits remain exact. Calendar-year scopes are derived from the UTC year and can use an injected `now` function in deterministic tests.

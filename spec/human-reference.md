@@ -36,20 +36,22 @@ Rules:
 - a value larger than the configured width returns `sequence_overflow`;
 - the check symbol is calculated over the decimal scope followed by the fixed-width sequence, or only the sequence when scope is absent;
 - sequence allocation MUST be owned by a transactional external allocator;
+- calendar-year allocation MUST derive its four digits from the UTC year;
+- the allocator MUST advance the namespace-and-scope counter and bind the sequence to the supplied MID in the same transaction;
 - uniqueness MUST be enforced over the canonical full reference.
 
 Example shape:
 
 ```text
-INV-2026-001842-C
+INV-2026-001842-M
 ```
 
-The example is illustrative until reproduced by a conformance vector with its calculated check symbol.
+The example is reproduced in `vectors/sequential.json`.
 
 ## Parsing and normalization
 
 Random input may omit hyphens and may use lowercase. The parser identifies the REF prefix through the active registry, applies that namespace's strategy and lengths, normalizes allowed aliases in the payload, and validates the check symbol.
 
-Sequential input may use lowercase prefix characters but MUST retain decimal digits exactly. Normalization restores the registered uppercase prefix, fixed-width sequence, and canonical hyphens.
+Sequential input may omit all hyphens and may use lowercase prefix and check-symbol characters, but MUST retain decimal digits exactly. Partially hyphenated input is invalid. Normalization restores the registered uppercase prefix, fixed-width sequence, and canonical hyphens.
 
 A syntactically valid REF is not necessarily allocated. Resolution is a separate storage operation.

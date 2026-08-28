@@ -3,6 +3,7 @@ import type { NamespaceRegistry } from "./registry.js";
 import type {
   RegisteredNamespaceDefinition,
   RegisteredRandomReferenceDefinition,
+  RegisteredSequentialReferenceDefinition,
 } from "./registry.js";
 
 declare const humanReferenceBrand: unique symbol;
@@ -21,6 +22,8 @@ export interface ParsedReference {
   readonly value: HumanReference;
   readonly namespace: string;
   readonly payload: string;
+  readonly scope?: string;
+  readonly sequence?: string;
   readonly checkSymbol: string;
   readonly strategy: "random" | "sequence";
 }
@@ -46,6 +49,28 @@ export function calculateReferenceCheckSymbol(payload: string): string {
       );
     }
     remainder = (remainder * 32 + value) % 37;
+  }
+
+  return CHECK_ALPHABET.charAt(remainder);
+}
+
+export function calculateSequentialCheckSymbol(payload: string): string {
+  if (payload.length === 0) {
+    throw new IdentifoldError(
+      "invalid_ref_length",
+      "Sequential reference payloads cannot be empty",
+    );
+  }
+
+  let remainder = 0;
+  for (const symbol of payload) {
+    if (symbol < "0" || symbol > "9") {
+      throw new IdentifoldError(
+        "invalid_ref_symbol",
+        "Sequential reference payload contains a non-decimal symbol",
+      );
+    }
+    remainder = (remainder * 10 + Number(symbol)) % 37;
   }
 
   return CHECK_ALPHABET.charAt(remainder);
@@ -82,6 +107,59 @@ export function createReferenceCandidate(
   );
 }
 
+export function formatSequentialReference(
+  registry: NamespaceRegistry,
+  namespace: string,
+  sequence: bigint,
+  scope?: string,
+): HumanReference {
+  const definition = requireSequentialNamespace(registry, namespace);
+  if (typeof sequence !== "bigint" || sequence < 0n) {
+    throw new IdentifoldError(
+      "invalid_ref",
+      "Sequential reference values must be non-negative integers",
+    );
+  }
+
+  const sequenceDigits = sequence.toString();
+  if (sequenceDigits.length > definition.reference.width) {
+    throw new IdentifoldError(
+      "sequence_overflow",
+      "Sequential reference value exceeds the configured width",
+    );
+  }
+  const paddedSequence = sequenceDigits.padStart(
+    definition.reference.width,
+    "0",
+  );
+
+  let payload: string;
+  if (definition.reference.scope === "calendar-year") {
+    if (scope === undefined || !/^\d{4}$/.test(scope)) {
+      throw new IdentifoldError(
+        "invalid_ref",
+        "Calendar-year sequential references require a four-digit scope",
+      );
+    }
+    payload = `${scope}${paddedSequence}`;
+  } else {
+    if (scope !== undefined) {
+      throw new IdentifoldError(
+        "invalid_ref",
+        "Unscoped sequential references do not accept a scope",
+      );
+    }
+    payload = paddedSequence;
+  }
+
+  return formatSequentialParts(
+    definition.reference.prefix,
+    paddedSequence,
+    calculateSequentialCheckSymbol(payload),
+    scope,
+  );
+}
+
 export function parseReference(
   value: string,
   registry: NamespaceRegistry,
@@ -98,10 +176,18 @@ export function parseReference(
   const located = locateNamespace(upper, registry);
   const definition = located.definition;
 
+  if (definition.reference?.strategy === "sequence") {
+    return parseSequentialReference(
+      located.body,
+      definition as RegisteredNamespaceDefinition & {
+        readonly reference: RegisteredSequentialReferenceDefinition;
+      },
+    );
+  }
   if (definition.reference?.strategy !== "random") {
     throw new IdentifoldError(
       "invalid_namespace_definition",
-      "Human reference strategy is not implemented by this codec",
+      "Namespace does not define a human reference",
     );
   }
 
@@ -141,6 +227,71 @@ export function parseReference(
   };
 }
 
+function parseSequentialReference(
+  bodyWithHyphens: string,
+  definition: RegisteredNamespaceDefinition & {
+    readonly reference: RegisteredSequentialReferenceDefinition;
+  },
+): ParsedReference {
+  const hasScope = definition.reference.scope === "calendar-year";
+  const payloadLength = definition.reference.width + (hasScope ? 4 : 0);
+  const body = bodyWithHyphens.replaceAll("-", "");
+  if (body.length !== payloadLength + 1) {
+    throw new IdentifoldError(
+      "invalid_ref_length",
+      "Sequential reference payload has the wrong length",
+    );
+  }
+  validateSequentialHyphenation(
+    bodyWithHyphens,
+    definition.reference.width,
+    hasScope,
+  );
+
+  const payload = body.slice(0, -1);
+  const checkSymbol = body.slice(-1);
+  if (!/^\d+$/.test(payload) || !CHECK_ALPHABET.includes(checkSymbol)) {
+    throw new IdentifoldError(
+      "invalid_ref_symbol",
+      "Sequential reference contains an invalid symbol",
+    );
+  }
+  if (calculateSequentialCheckSymbol(payload) !== checkSymbol) {
+    throw new IdentifoldError(
+      "invalid_checksum",
+      "Sequential reference check symbol does not match its payload",
+    );
+  }
+
+  const scope = hasScope ? payload.slice(0, 4) : undefined;
+  const sequence = hasScope ? payload.slice(4) : payload;
+  const value = formatSequentialParts(
+    definition.reference.prefix,
+    sequence,
+    checkSymbol,
+    scope,
+  );
+
+  return scope === undefined
+    ? {
+        value,
+        namespace: definition.publicPrefix,
+        payload,
+        checkSymbol,
+        sequence,
+        strategy: "sequence",
+      }
+    : {
+        value,
+        namespace: definition.publicPrefix,
+        payload,
+        checkSymbol,
+        scope,
+        sequence,
+        strategy: "sequence",
+      };
+}
+
 export function normalizeReference(
   value: string,
   registry: NamespaceRegistry,
@@ -173,6 +324,31 @@ function validateHyphenation(body: string, payloadLength: number): void {
   }
 }
 
+function validateSequentialHyphenation(
+  body: string,
+  sequenceWidth: number,
+  hasScope: boolean,
+): void {
+  if (!body.includes("-")) {
+    return;
+  }
+  const expectedGroupLengths = hasScope
+    ? [4, sequenceWidth, 1]
+    : [sequenceWidth, 1];
+  const actualGroupLengths = body.split("-").map((group) => group.length);
+  if (
+    actualGroupLengths.length !== expectedGroupLengths.length ||
+    actualGroupLengths.some(
+      (length, index) => length !== expectedGroupLengths[index],
+    )
+  ) {
+    throw new IdentifoldError(
+      "invalid_ref",
+      "Sequential reference hyphenation is not canonical",
+    );
+  }
+}
+
 function secureRandomBytes(size: number): Uint8Array {
   return globalThis.crypto.getRandomValues(new Uint8Array(size));
 }
@@ -201,6 +377,30 @@ function requireRandomNamespace(
   };
 }
 
+function requireSequentialNamespace(
+  registry: NamespaceRegistry,
+  namespace: string,
+): RegisteredNamespaceDefinition & {
+  readonly reference: RegisteredSequentialReferenceDefinition;
+} {
+  const definition = registry.getByPublicPrefix(namespace);
+  if (definition === undefined) {
+    throw new IdentifoldError(
+      "unknown_namespace",
+      "Unknown public identifier namespace",
+    );
+  }
+  if (definition.reference?.strategy !== "sequence") {
+    throw new IdentifoldError(
+      "invalid_namespace_definition",
+      "Namespace does not use sequential human references",
+    );
+  }
+  return definition as RegisteredNamespaceDefinition & {
+    readonly reference: RegisteredSequentialReferenceDefinition;
+  };
+}
+
 function formatReference(
   prefix: string,
   payload: string,
@@ -211,6 +411,19 @@ function formatReference(
     groups.push(payload.slice(index, index + 4));
   }
   return `${prefix}-${groups.join("-")}-${checkSymbol}` as HumanReference;
+}
+
+function formatSequentialParts(
+  prefix: string,
+  sequence: string,
+  checkSymbol: string,
+  scope?: string,
+): HumanReference {
+  return (
+    scope === undefined
+      ? `${prefix}-${sequence}-${checkSymbol}`
+      : `${prefix}-${scope}-${sequence}-${checkSymbol}`
+  ) as HumanReference;
 }
 
 function normalizePayload(payload: string): string {

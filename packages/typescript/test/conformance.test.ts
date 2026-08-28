@@ -6,6 +6,7 @@ import {
   createIdentifold,
   createNamespaceRegistry,
   createReferenceCandidate,
+  formatSequentialReference,
   parseMachineId,
   parsePublicId,
   publicIdFromMachineId,
@@ -35,6 +36,15 @@ interface ReferenceVector {
   readonly payload: string;
   readonly randomBytes: readonly number[];
   readonly reference: string;
+}
+
+interface SequentialVector {
+  readonly checkSymbol: string;
+  readonly namespace: string;
+  readonly payload: string;
+  readonly reference: string;
+  readonly scope?: string;
+  readonly sequence: string;
 }
 
 interface RegistryEnvelope<Vector> extends VectorEnvelope<Vector> {
@@ -108,6 +118,32 @@ describe("public conformance vectors", () => {
         checkSymbol: vector.checkSymbol,
         strategy: "random",
       });
+    }
+  });
+
+  it("reproduces deterministic sequential REF values", () => {
+    const data = loadRegistryVectors<SequentialVector>("sequential");
+    const registry = createNamespaceRegistry(data.registry);
+    for (const vector of data.vectors) {
+      const reference = formatSequentialReference(
+        registry,
+        vector.namespace,
+        BigInt(vector.sequence),
+        vector.scope,
+      );
+      expect(reference).toBe(vector.reference);
+      expect(createIdentifold({ registry }).parse(reference)).toEqual(
+        expect.objectContaining({
+          value: reference,
+          namespace: vector.namespace,
+          payload: vector.payload,
+          checkSymbol: vector.checkSymbol,
+          sequence: BigInt(vector.sequence)
+            .toString()
+            .padStart(vector.payload.length - (vector.scope?.length ?? 0), "0"),
+          strategy: "sequence",
+        }),
+      );
     }
   });
 
