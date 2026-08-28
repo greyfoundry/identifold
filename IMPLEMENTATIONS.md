@@ -8,10 +8,10 @@ Every implementation listed here targets the stable Identifold 1.0 wire contract
 | Python                    | `packages/python`     | Conformant; production example verified |
 | Java                      | `packages/java`       | In progress                             |
 | C#                        | `packages/csharp`     | In progress                             |
-| Go                        | `packages/go`         | In progress                             |
+| Go                        | `packages/go`         | Conformant                              |
 | PHP                       | `packages/php`        | In progress                             |
 | Kotlin                    | `packages/kotlin`     | In progress                             |
-| Rust                      | `packages/rust`       | In progress                             |
+| Rust                      | `packages/rust`       | Conformant                              |
 | Ruby                      | `packages/ruby`       | In progress                             |
 | Swift                     | `packages/swift`      | In progress                             |
 

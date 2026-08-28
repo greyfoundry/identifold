@@ -5,6 +5,10 @@ __pycache__/
 .pytest_cache/
 .venv/
 build/
+target/
+bin/
+obj/
+.gradle/
 *.egg-info/
 *.py[cod]
 *.tgz
