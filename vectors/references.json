@@ -1,0 +1,39 @@
+{
+  "$schema": "./schema.json",
+  "kind": "references",
+  "specVersion": "0.1-draft",
+  "registry": [
+    {
+      "publicPrefix": "order",
+      "reference": {
+        "prefix": "ORD",
+        "profile": "standard",
+        "strategy": "random"
+      }
+    },
+    {
+      "publicPrefix": "ticket",
+      "reference": {
+        "prefix": "TKT",
+        "profile": "compact",
+        "strategy": "random"
+      }
+    }
+  ],
+  "vectors": [
+    {
+      "namespace": "order",
+      "randomBytes": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
+      "reference": "ORD-0123-4567-89-P",
+      "payload": "0123456789",
+      "checkSymbol": "P"
+    },
+    {
+      "namespace": "ticket",
+      "randomBytes": [31, 31, 31, 31, 31, 31, 31, 31],
+      "reference": "TKT-ZZZZ-ZZZZ-F",
+      "payload": "ZZZZZZZZ",
+      "checkSymbol": "F"
+    }
+  ]
+}

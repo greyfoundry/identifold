@@ -39,4 +39,22 @@ describe("public identifiers", () => {
       expect.objectContaining({ code: "invalid_public_prefix" }),
     );
   });
+
+  it("rejects an invalid namespace during PID encoding", () => {
+    expect(() => publicIdFromMachineId(machineId, "Invalid Prefix")).toThrow(
+      expect.objectContaining({ code: "invalid_public_prefix" }),
+    );
+  });
+
+  it("rejects malformed lowercase PID input", () => {
+    expect(() => parsePublicId("prefix_not-a-typeid")).toThrow(
+      expect.objectContaining({ code: "invalid_pid" }),
+    );
+  });
+
+  it("rejects a TypeID without an Identifold namespace", () => {
+    expect(() => parsePublicId("01h2xcejqtf2nbrexx3vqjhp41")).toThrow(
+      expect.objectContaining({ code: "invalid_public_prefix" }),
+    );
+  });
 });

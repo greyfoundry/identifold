@@ -8,6 +8,11 @@
   "engines": {
     "node": ">=22"
   },
+  "pnpm": {
+    "overrides": {
+      "typeid-js>uuid": "11.1.1"
+    }
+  },
   "scripts": {
     "build": "pnpm --filter @greyfoundry/identifold build",
     "format": "prettier --write .",

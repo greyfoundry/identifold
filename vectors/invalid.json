@@ -1,0 +1,37 @@
+{
+  "$schema": "./schema.json",
+  "kind": "invalid",
+  "specVersion": "0.1-draft",
+  "registry": [
+    {
+      "publicPrefix": "prefix",
+      "reference": {
+        "prefix": "ORD",
+        "profile": "standard",
+        "strategy": "random"
+      }
+    }
+  ],
+  "vectors": [
+    {
+      "input": "f47ac10b-58cc-4372-a567-0e02b2c3d479",
+      "errorCode": "invalid_uuid_version"
+    },
+    {
+      "input": "PREFIX_01H2XCEJQTF2NBREXX3VQJHP41",
+      "errorCode": "invalid_pid"
+    },
+    {
+      "input": "other_01h2xcejqtf2nbrexx3vqjhp41",
+      "errorCode": "unknown_namespace"
+    },
+    {
+      "input": "ORD-7K4M-2P8Q-3D-K",
+      "errorCode": "invalid_checksum"
+    },
+    {
+      "input": "?not-an-identifier?",
+      "errorCode": "invalid_kind"
+    }
+  ]
+}

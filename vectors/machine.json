@@ -1,0 +1,11 @@
+{
+  "$schema": "./schema.json",
+  "kind": "machine",
+  "specVersion": "0.1-draft",
+  "vectors": [
+    {
+      "canonical": "0188bac7-4afa-78aa-bb3b-bd1eef28d881",
+      "accepted": ["0188BAC7-4AFA-78AA-BB3B-BD1EEF28D881"]
+    }
+  ]
+}

@@ -1,0 +1,149 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://greyfoundry.dev/identifold/vectors/schema.json",
+  "title": "Identifold conformance vector file",
+  "type": "object",
+  "required": ["kind", "specVersion", "vectors"],
+  "properties": {
+    "$schema": { "type": "string" },
+    "kind": {
+      "enum": ["machine", "public", "references", "normalization", "invalid"]
+    },
+    "specVersion": { "const": "0.1-draft" },
+    "registry": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/namespace" }
+    },
+    "vectors": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "type": "object" }
+    }
+  },
+  "additionalProperties": false,
+  "oneOf": [
+    {
+      "properties": {
+        "kind": { "const": "machine" },
+        "vectors": {
+          "items": { "$ref": "#/$defs/machineVector" }
+        }
+      }
+    },
+    {
+      "properties": {
+        "kind": { "const": "public" },
+        "vectors": {
+          "items": { "$ref": "#/$defs/publicVector" }
+        }
+      }
+    },
+    {
+      "required": ["registry"],
+      "properties": {
+        "kind": { "const": "references" },
+        "vectors": {
+          "items": { "$ref": "#/$defs/referenceVector" }
+        }
+      }
+    },
+    {
+      "required": ["registry"],
+      "properties": {
+        "kind": { "const": "normalization" },
+        "vectors": {
+          "items": { "$ref": "#/$defs/normalizationVector" }
+        }
+      }
+    },
+    {
+      "required": ["registry"],
+      "properties": {
+        "kind": { "const": "invalid" },
+        "vectors": {
+          "items": { "$ref": "#/$defs/invalidVector" }
+        }
+      }
+    }
+  ],
+  "$defs": {
+    "namespace": {
+      "type": "object",
+      "required": ["publicPrefix"],
+      "properties": {
+        "publicPrefix": { "type": "string" },
+        "reference": {
+          "type": "object",
+          "required": ["prefix", "strategy"],
+          "properties": {
+            "prefix": { "type": "string" },
+            "profile": { "enum": ["compact", "standard", "high"] },
+            "strategy": { "const": "random" }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    "machineVector": {
+      "type": "object",
+      "required": ["accepted", "canonical"],
+      "properties": {
+        "accepted": { "type": "array", "items": { "type": "string" } },
+        "canonical": { "type": "string" }
+      },
+      "additionalProperties": false
+    },
+    "publicVector": {
+      "type": "object",
+      "required": ["machineId", "namespace", "publicId", "source"],
+      "properties": {
+        "machineId": { "type": "string" },
+        "namespace": { "type": "string" },
+        "publicId": { "type": "string" },
+        "source": { "type": "string" }
+      },
+      "additionalProperties": false
+    },
+    "referenceVector": {
+      "type": "object",
+      "required": [
+        "checkSymbol",
+        "namespace",
+        "payload",
+        "randomBytes",
+        "reference"
+      ],
+      "properties": {
+        "checkSymbol": { "type": "string" },
+        "namespace": { "type": "string" },
+        "payload": { "type": "string" },
+        "randomBytes": {
+          "type": "array",
+          "items": { "type": "integer", "minimum": 0, "maximum": 255 }
+        },
+        "reference": { "type": "string" }
+      },
+      "additionalProperties": false
+    },
+    "normalizationVector": {
+      "type": "object",
+      "required": ["input", "normalized", "representation"],
+      "properties": {
+        "input": { "type": "string" },
+        "normalized": { "type": "string" },
+        "representation": { "enum": ["mid", "pid", "ref"] }
+      },
+      "additionalProperties": false
+    },
+    "invalidVector": {
+      "type": "object",
+      "required": ["errorCode", "input"],
+      "properties": {
+        "errorCode": { "type": "string" },
+        "input": { "type": "string" }
+      },
+      "additionalProperties": false
+    }
+  }
+}

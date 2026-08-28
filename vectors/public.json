@@ -1,0 +1,13 @@
+{
+  "$schema": "./schema.json",
+  "kind": "public",
+  "specVersion": "0.1-draft",
+  "vectors": [
+    {
+      "namespace": "prefix",
+      "machineId": "0188bac7-4afa-78aa-bc3b-bd1eef28d881",
+      "publicId": "prefix_01h2xcejqtf2nbrexx3vqjhp41",
+      "source": "TypeID specification v0.3"
+    }
+  ]
+}

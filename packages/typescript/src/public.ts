@@ -26,17 +26,19 @@ export function publicIdFromMachineId<Namespace extends string>(
   namespace: Namespace,
 ): PublicId<Namespace> {
   const canonicalMachineId = parseMachineId(machineId);
-
-  try {
-    return String(
-      typeIdFromUuid(canonicalMachineId, namespace),
-    ) as PublicId<Namespace>;
-  } catch {
+  if (
+    namespace.length === 0 ||
+    !/^([a-z]([a-z_]{0,61}[a-z])?)?$/.test(namespace)
+  ) {
     throw new IdentifoldError(
       "invalid_public_prefix",
       "Invalid public identifier prefix",
     );
   }
+
+  return String(
+    typeIdFromUuid(canonicalMachineId, namespace),
+  ) as PublicId<Namespace>;
 }
 
 export function parsePublicId<Namespace extends string = string>(
@@ -56,6 +58,12 @@ export function parsePublicId<Namespace extends string = string>(
   }
 
   const namespace = getTypeIdPrefix(parsed);
+  if (namespace.length === 0) {
+    throw new IdentifoldError(
+      "invalid_public_prefix",
+      "Public identifiers require a namespace",
+    );
+  }
   if (expectedNamespace !== undefined && namespace !== expectedNamespace) {
     throw new IdentifoldError(
       "invalid_public_prefix",

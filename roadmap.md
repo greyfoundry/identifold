@@ -2,6 +2,16 @@
 
 This roadmap is the public delivery contract for Identifold. A phase is complete only when every exit gate in that phase is satisfied. Later phases may be explored early, but they do not inherit completion from prototypes.
 
+## Current status
+
+| Phase | Status      | Remaining gate                                                              |
+| ----- | ----------- | --------------------------------------------------------------------------- |
+| 0     | In review   | Stabilization review and resolution of any reported specification conflicts |
+| 1     | In progress | Transactional sequential allocator and its conformance tests                |
+| 2     | In progress | Complete sequential support and all supported-runtime CI evidence           |
+| 3     | In progress | Expanded corpus, compatibility policy, and an independent runner            |
+| 4-9   | Planned     | Phase-specific deliverables and exit gates below                            |
+
 ## Phase 0: Identity specification
 
 Define the stable concepts and the boundaries between them.

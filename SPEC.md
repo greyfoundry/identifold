@@ -81,7 +81,7 @@ Sequential references use an external transactional allocator. Their canonical g
 
 A namespace definition binds one public prefix to zero or one REF configuration. Definitions MUST be validated together and frozen before use.
 
-Public prefixes MUST be unique. REF prefixes MUST be unique case-insensitively. A registry MUST reject duplicates and malformed definitions atomically.
+Public prefixes MUST be unique. REF prefixes MUST be unique case-insensitively and prefix-free so that hyphenless input has exactly one possible namespace. A registry MUST reject duplicates, ambiguous REF prefixes, and malformed definitions atomically.
 
 A published namespace meaning MUST NOT be reassigned. A wire-incompatible change requires a new namespace or a new major specification version.
 
@@ -108,6 +108,7 @@ The default API exposes:
 Conforming implementations MUST expose stable machine-readable error codes. At minimum:
 
 - `invalid_kind`;
+- `invalid_allocation_policy`;
 - `invalid_mid`;
 - `invalid_uuid_version`;
 - `invalid_pid`;
@@ -115,6 +116,7 @@ Conforming implementations MUST expose stable machine-readable error codes. At m
 - `unknown_namespace`;
 - `invalid_ref`;
 - `invalid_ref_prefix`;
+- `ambiguous_ref_prefix`;
 - `invalid_ref_length`;
 - `invalid_ref_symbol`;
 - `invalid_checksum`;

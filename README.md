@@ -23,9 +23,42 @@ REF -> storage -> MID
 
 The project is specification-first. See [SPEC.md](SPEC.md) for the normative contract and [roadmap.md](roadmap.md) for delivery phases and gates.
 
+## TypeScript quick start
+
+The reference package is currently developed in `packages/typescript` and has not yet been published.
+
+```ts
+import {
+  createIdentifold,
+  createNamespaceRegistry,
+} from "@greyfoundry/identifold";
+
+const registry = createNamespaceRegistry([{ publicPrefix: "user" }]);
+const ids = createIdentifold({ registry });
+
+const identity = await ids.create("user");
+
+ids.parse(identity.pid);
+ids.validate(identity.mid);
+ids.inspect(identity.pid);
+ids.normalize(identity.mid.toUpperCase());
+```
+
+Namespaces with a human-reference configuration require an atomic `ReferenceStore` before `create` returns a REF. Candidate generation alone does not establish uniqueness.
+
+## Storage responsibilities
+
+- Store the MID as the canonical identity, preferably in a native UUID or 16-byte database type.
+- Derive the PID from the MID and registered public prefix unless an application has a specific indexing need.
+- Store each REF as a separate unique value mapped to its MID and namespace.
+- Implement `ReferenceStore.reserve` as one atomic insert-or-conflict operation backed by a unique constraint.
+- Preserve retired namespace definitions for historical parsing.
+
+An in-memory uniqueness check is not a production allocation boundary for multiple processes.
+
 ## Status
 
-Identifold is pre-release. Formats and APIs are not stable until the specification and conformance vectors reach their first stable version.
+Identifold is pre-release. MID and PID behavior follows the cited upstream standards. The REF format, unified TypeScript API, vector schema, and error taxonomy remain draft until the specification and conformance suite reach their stable gates. Sequential REF allocation is specified but is not yet implemented by the TypeScript package.
 
 ## Security boundary
 

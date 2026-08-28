@@ -17,11 +17,12 @@ Registry construction validates the complete collection before returning it. It 
 
 - duplicate public prefixes;
 - duplicate REF prefixes under case-insensitive comparison;
+- REF prefixes where either prefix is the beginning of the other;
 - malformed TypeID prefixes;
 - REF prefixes outside 2 to 8 ASCII letters;
 - random profiles with unsupported lengths;
 - sequential widths outside 4 to 18;
-- sequential configuration without an allocator at identity-service construction time.
+- attempts to allocate a sequential namespace without a transactional allocator.
 
 Definitions and the returned registry MUST be immutable from the caller's perspective.
 

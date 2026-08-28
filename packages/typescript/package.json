@@ -2,7 +2,22 @@
   "name": "@greyfoundry/identifold",
   "version": "0.0.0",
   "description": "TypeScript reference implementation of the Identifold specification.",
+  "keywords": [
+    "identifier",
+    "typeid",
+    "uuid",
+    "uuidv7"
+  ],
   "license": "Apache-2.0",
+  "homepage": "https://github.com/greyfoundry/identifold#readme",
+  "bugs": {
+    "url": "https://github.com/greyfoundry/identifold/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/greyfoundry/identifold.git",
+    "directory": "packages/typescript"
+  },
   "type": "module",
   "sideEffects": false,
   "files": [

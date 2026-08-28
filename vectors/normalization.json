@@ -1,0 +1,27 @@
+{
+  "$schema": "./schema.json",
+  "kind": "normalization",
+  "specVersion": "0.1-draft",
+  "registry": [
+    {
+      "publicPrefix": "order",
+      "reference": {
+        "prefix": "ORD",
+        "profile": "standard",
+        "strategy": "random"
+      }
+    }
+  ],
+  "vectors": [
+    {
+      "representation": "mid",
+      "input": "0188BAC7-4AFA-78AA-BB3B-BD1EEF28D881",
+      "normalized": "0188bac7-4afa-78aa-bb3b-bd1eef28d881"
+    },
+    {
+      "representation": "ref",
+      "input": "ordol00000000g",
+      "normalized": "ORD-0100-0000-00-G"
+    }
+  ]
+}
