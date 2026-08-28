@@ -42,6 +42,10 @@
       "types": "./dist/json.d.ts",
       "import": "./dist/json.js"
     },
+    "./legacy": {
+      "types": "./dist/legacy.d.ts",
+      "import": "./dist/legacy.js"
+    },
     "./middleware": {
       "types": "./dist/middleware.d.ts",
       "import": "./dist/middleware.js"

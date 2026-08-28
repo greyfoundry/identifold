@@ -44,6 +44,14 @@ describeDatabase("PostgreSQL integration", () => {
     "../../../integrations/postgres/migrations/001_identifold.down.sql",
     import.meta.url,
   );
+  const legacyUpUrl = new URL(
+    "../../../integrations/postgres/migrations/002_legacy_aliases.up.sql",
+    import.meta.url,
+  );
+  const legacyDownUrl = new URL(
+    "../../../integrations/postgres/migrations/002_legacy_aliases.down.sql",
+    import.meta.url,
+  );
 
   afterAll(async () => {
     await pool.end();
@@ -110,6 +118,30 @@ describeDatabase("PostgreSQL integration", () => {
       "SELECT count(*) FROM identifold_references",
     );
     expect(count.rows[0]?.count).toBe("1");
+  });
+
+  it("stores and reverses original legacy aliases", async () => {
+    const legacyUp = readFileSync(legacyUpUrl, "utf8");
+    const legacyDown = readFileSync(legacyDownUrl, "utf8");
+    await pool.query(legacyDown);
+    await pool.query(legacyUp);
+    const machineId = createMachineId();
+    await pool.query(
+      "INSERT INTO identifold_legacy_aliases (namespace, legacy_kind, legacy_value, machine_id) VALUES ($1, $2, $3, $4)",
+      ["customer", "integer", "1842", machineId],
+    );
+    const alias = await pool.query<{
+      legacy_value: string;
+      machine_id: string;
+    }>("SELECT legacy_value, machine_id FROM identifold_legacy_aliases");
+    expect(alias.rows).toEqual([
+      { legacy_value: "1842", machine_id: machineId },
+    ]);
+    await pool.query(legacyDown);
+    const removed = await pool.query<{ table_name: string | null }>(
+      "SELECT to_regclass('public.identifold_legacy_aliases')::text AS table_name",
+    );
+    expect(removed.rows[0]?.table_name).toBeNull();
   });
 
   it("allocates unique, ordered sequences under concurrent writers", async () => {

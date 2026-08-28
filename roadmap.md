@@ -14,7 +14,8 @@ This roadmap is the public delivery contract for Identifold. A phase is complete
 | 5     | Complete | All exit gates satisfied                         |
 | 6     | Complete | All exit gates satisfied                         |
 | 7     | Complete | Python implementation satisfies all exit gates   |
-| 8-9   | Planned  | Phase-specific deliverables and exit gates below |
+| 8     | Complete | All exit gates satisfied                         |
+| 9     | Planned  | Phase-specific deliverables and exit gates below |
 
 ## Phase 0: Identity specification
 
