@@ -35,6 +35,22 @@
       "types": "./dist/drizzle.d.ts",
       "import": "./dist/drizzle.js"
     },
+    "./json": {
+      "types": "./dist/json.d.ts",
+      "import": "./dist/json.js"
+    },
+    "./middleware": {
+      "types": "./dist/middleware.d.ts",
+      "import": "./dist/middleware.js"
+    },
+    "./observability": {
+      "types": "./dist/observability.d.ts",
+      "import": "./dist/observability.js"
+    },
+    "./openapi": {
+      "types": "./dist/openapi.d.ts",
+      "import": "./dist/openapi.js"
+    },
     "./postgres": {
       "types": "./dist/postgres.d.ts",
       "import": "./dist/postgres.js"
@@ -42,6 +58,10 @@
     "./prisma": {
       "types": "./dist/prisma.d.ts",
       "import": "./dist/prisma.js"
+    },
+    "./zod": {
+      "types": "./dist/zod.d.ts",
+      "import": "./dist/zod.js"
     }
   },
   "engines": {
@@ -57,7 +77,8 @@
   },
   "dependencies": {
     "typeid-js": "^1.2.0",
-    "uuid": "^14.0.2"
+    "uuid": "^14.0.2",
+    "zod": "^4.4.3"
   },
   "peerDependencies": {
     "@prisma/client": ">=7 <9",
