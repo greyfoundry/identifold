@@ -4,6 +4,8 @@ coverage/
 __pycache__/
 .pytest_cache/
 .venv/
+build/
+*.egg-info/
 *.py[cod]
 *.tgz
 .DS_Store

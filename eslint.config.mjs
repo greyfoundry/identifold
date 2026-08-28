@@ -8,6 +8,7 @@ export default tseslint.config(
       "**/dist/**",
       "**/node_modules/**",
       ".private/**",
+      ".venv/**",
       "eslint.config.mjs",
     ],
   },
