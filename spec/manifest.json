@@ -4,8 +4,8 @@
   "release": {
     "packageVersion": "1.0.0",
     "productionExamples": [
-      "packages/typescript/examples/basic.ts",
-      "packages/python/examples/basic.py"
+      "examples/typescript/basic.ts",
+      "examples/python/basic.py"
     ],
     "requiredImplementations": [
       "typescript",

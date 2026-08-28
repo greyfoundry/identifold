@@ -21,6 +21,7 @@
     "test": "pnpm --filter @greyfoundry/identifold test",
     "test:conformance": "python -m unittest conformance/test_runner.py",
     "test:database": "pnpm --filter @greyfoundry/identifold test:database",
+    "test:examples": "pnpm --dir examples/typescript test && python examples/python/basic.py",
     "test:python": "python -m pytest packages/python/tests -q",
     "test:coverage": "pnpm --filter @greyfoundry/identifold test:coverage",
     "typecheck": "pnpm --filter @greyfoundry/identifold typecheck",

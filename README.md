@@ -46,6 +46,8 @@ ids.normalize(identity.mid.toUpperCase());
 
 Namespaces with a human-reference configuration require an atomic `ReferenceStore` before `create` returns a REF. Candidate generation alone does not establish uniqueness.
 
+Tested production examples are available for [TypeScript and Python](examples/README.md).
+
 Sequential namespaces use a transactional `SequenceAllocator`. Its `allocate` operation must advance the namespace-and-scope counter and bind the allocated value to the supplied MID in the same transaction. Calendar-year scopes use the UTC year.
 
 The TypeScript implementation exposes typed injection points for MID creation, clocks, REF randomness, atomic random-reference reservation, and sequential allocation. Injected MID values are validated before any storage operation. Default UUIDv7 generation remains delegated to `uuid`, while PID encoding remains delegated to `typeid-js`.

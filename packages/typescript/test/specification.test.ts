@@ -68,8 +68,8 @@ describe("specification contract", () => {
     expect(manifest.release).toEqual({
       packageVersion: "1.0.0",
       productionExamples: [
-        "packages/typescript/examples/basic.ts",
-        "packages/python/examples/basic.py",
+        "examples/typescript/basic.ts",
+        "examples/python/basic.py",
       ],
       requiredImplementations: [
         "typescript",
@@ -84,6 +84,11 @@ describe("specification contract", () => {
         "swift",
       ],
     });
+    for (const example of manifest.release.productionExamples) {
+      expect(existsSync(new URL(`../../../${example}`, import.meta.url))).toBe(
+        true,
+      );
+    }
     expect(manifest.errorCodes).toEqual(identifold.IDENTIFOLD_ERROR_CODES);
     expect(manifest.exclusions).toEqual([
       "authentication",
