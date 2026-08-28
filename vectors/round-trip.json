@@ -1,0 +1,17 @@
+{
+  "$schema": "./schema.json",
+  "kind": "round-trip",
+  "specVersion": "0.1-draft",
+  "vectors": [
+    {
+      "namespace": "prefix",
+      "machineId": "0188bac7-4afa-78aa-bc3b-bd1eef28d881",
+      "publicId": "prefix_01h2xcejqtf2nbrexx3vqjhp41"
+    },
+    {
+      "namespace": "order",
+      "machineId": "019d4c72-c910-7a84-b313-53c3ac61a32f",
+      "publicId": "order_01kn675j8gfa2b64tkrep638sf"
+    }
+  ]
+}

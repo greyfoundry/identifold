@@ -19,9 +19,10 @@
     "format:check": "prettier --check .",
     "lint": "eslint .",
     "test": "pnpm --filter @greyfoundry/identifold test",
+    "test:conformance": "python -m unittest conformance/test_runner.py",
     "test:coverage": "pnpm --filter @greyfoundry/identifold test:coverage",
     "typecheck": "pnpm --filter @greyfoundry/identifold typecheck",
-    "verify": "pnpm format:check && pnpm lint && pnpm typecheck && pnpm test && pnpm build && pnpm --filter @greyfoundry/identifold pack:check"
+    "verify": "pnpm format:check && pnpm lint && pnpm typecheck && pnpm test && pnpm build && pnpm test:conformance && pnpm --filter @greyfoundry/identifold pack:check"
   },
   "devDependencies": {
     "@arethetypeswrong/cli": "^0.18.5",

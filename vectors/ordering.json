@@ -1,0 +1,20 @@
+{
+  "$schema": "./schema.json",
+  "kind": "ordering",
+  "specVersion": "0.1-draft",
+  "vectors": [
+    {
+      "namespace": "order",
+      "machineIds": [
+        "0188bac7-4afa-78aa-bc3b-bd1eef28d881",
+        "0188bac7-4afb-78aa-bc3b-bd1eef28d881",
+        "0188bac7-4afc-78aa-bc3b-bd1eef28d881"
+      ],
+      "publicIds": [
+        "order_01h2xcejqtf2nbrexx3vqjhp41",
+        "order_01h2xcejqvf2nbrexx3vqjhp41",
+        "order_01h2xcejqwf2nbrexx3vqjhp41"
+      ]
+    }
+  ]
+}

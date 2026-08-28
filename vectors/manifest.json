@@ -1,0 +1,18 @@
+{
+  "schemaVersion": 1,
+  "specVersion": "0.1-draft",
+  "files": [
+    { "file": "machine.json", "kind": "machine", "required": true },
+    { "file": "public.json", "kind": "public", "required": true },
+    { "file": "references.json", "kind": "references", "required": true },
+    { "file": "sequential.json", "kind": "sequential", "required": true },
+    {
+      "file": "normalization.json",
+      "kind": "normalization",
+      "required": true
+    },
+    { "file": "invalid.json", "kind": "invalid", "required": true },
+    { "file": "round-trip.json", "kind": "round-trip", "required": true },
+    { "file": "ordering.json", "kind": "ordering", "required": true }
+  ]
+}

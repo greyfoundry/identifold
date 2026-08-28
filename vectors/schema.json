@@ -13,7 +13,9 @@
         "references",
         "sequential",
         "normalization",
-        "invalid"
+        "invalid",
+        "round-trip",
+        "ordering"
       ]
     },
     "specVersion": { "const": "0.1-draft" },
@@ -78,6 +80,22 @@
         "kind": { "const": "invalid" },
         "vectors": {
           "items": { "$ref": "#/$defs/invalidVector" }
+        }
+      }
+    },
+    {
+      "properties": {
+        "kind": { "const": "round-trip" },
+        "vectors": {
+          "items": { "$ref": "#/$defs/roundTripVector" }
+        }
+      }
+    },
+    {
+      "properties": {
+        "kind": { "const": "ordering" },
+        "vectors": {
+          "items": { "$ref": "#/$defs/orderingVector" }
         }
       }
     }
@@ -188,10 +206,46 @@
     },
     "invalidVector": {
       "type": "object",
-      "required": ["errorCode", "input"],
+      "required": ["errorCode", "input", "operation"],
       "properties": {
         "errorCode": { "type": "string" },
-        "input": { "type": "string" }
+        "input": { "type": "string" },
+        "operation": {
+          "enum": [
+            "inspect",
+            "parseMachineId",
+            "parsePublicId",
+            "parseReference"
+          ]
+        }
+      },
+      "additionalProperties": false
+    },
+    "roundTripVector": {
+      "type": "object",
+      "required": ["machineId", "namespace", "publicId"],
+      "properties": {
+        "machineId": { "type": "string" },
+        "namespace": { "type": "string" },
+        "publicId": { "type": "string" }
+      },
+      "additionalProperties": false
+    },
+    "orderingVector": {
+      "type": "object",
+      "required": ["machineIds", "namespace", "publicIds"],
+      "properties": {
+        "machineIds": {
+          "type": "array",
+          "minItems": 2,
+          "items": { "type": "string" }
+        },
+        "namespace": { "type": "string" },
+        "publicIds": {
+          "type": "array",
+          "minItems": 2,
+          "items": { "type": "string" }
+        }
       },
       "additionalProperties": false
     }

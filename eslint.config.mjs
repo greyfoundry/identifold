@@ -27,4 +27,14 @@ export default tseslint.config(
       "@typescript-eslint/no-import-type-side-effects": "error",
     },
   },
+  {
+    ...tseslint.configs.disableTypeChecked,
+    files: ["conformance/*.mjs"],
+    languageOptions: {
+      ...tseslint.configs.disableTypeChecked.languageOptions,
+      globals: {
+        process: "readonly",
+      },
+    },
+  },
 );

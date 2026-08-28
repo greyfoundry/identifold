@@ -15,22 +15,57 @@
   "vectors": [
     {
       "input": "f47ac10b-58cc-4372-a567-0e02b2c3d479",
+      "operation": "parseMachineId",
       "errorCode": "invalid_uuid_version"
     },
     {
+      "input": "not-a-uuid",
+      "operation": "parseMachineId",
+      "errorCode": "invalid_mid"
+    },
+    {
       "input": "PREFIX_01H2XCEJQTF2NBREXX3VQJHP41",
+      "operation": "parsePublicId",
+      "errorCode": "invalid_pid"
+    },
+    {
+      "input": "01h2xcejqtf2nbrexx3vqjhp41",
+      "operation": "parsePublicId",
+      "errorCode": "invalid_public_prefix"
+    },
+    {
+      "input": "prefix_not-a-typeid",
+      "operation": "parsePublicId",
       "errorCode": "invalid_pid"
     },
     {
       "input": "other_01h2xcejqtf2nbrexx3vqjhp41",
+      "operation": "inspect",
       "errorCode": "unknown_namespace"
     },
     {
       "input": "ORD-7K4M-2P8Q-3D-K",
+      "operation": "parseReference",
       "errorCode": "invalid_checksum"
     },
     {
+      "input": "ORD-7K4M-2P8Q-3D-9?",
+      "operation": "parseReference",
+      "errorCode": "invalid_ref"
+    },
+    {
+      "input": "ORD-7K4M-2P8Q-3D",
+      "operation": "parseReference",
+      "errorCode": "invalid_ref_length"
+    },
+    {
+      "input": "ORD-7K4M-2P8Q-3U-9",
+      "operation": "parseReference",
+      "errorCode": "invalid_ref_symbol"
+    },
+    {
       "input": "?not-an-identifier?",
+      "operation": "inspect",
       "errorCode": "invalid_kind"
     }
   ]
