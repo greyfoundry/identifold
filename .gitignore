@@ -9,6 +9,7 @@ target/
 packages/csharp/**/bin/
 packages/csharp/**/obj/
 .gradle/
+.build/
 *.egg-info/
 *.py[cod]
 *.tgz

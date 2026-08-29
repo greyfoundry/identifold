@@ -10,9 +10,9 @@ Every implementation listed here targets the stable Identifold 1.0 wire contract
 | C#                        | `packages/csharp`     | Conformant                              |
 | Go                        | `packages/go`         | Conformant                              |
 | PHP                       | `packages/php`        | Conformant                              |
-| Kotlin                    | `packages/kotlin`     | In progress                             |
+| Kotlin                    | `packages/kotlin`     | Conformant                              |
 | Rust                      | `packages/rust`       | Conformant                              |
 | Ruby                      | `packages/ruby`       | Conformant                              |
-| Swift                     | `packages/swift`      | In progress                             |
+| Swift                     | `packages/swift`      | Conformant                              |
 
 An implementation becomes conformant only after it passes all required vectors without changing their values, normalization rules, or stable error classifications.
