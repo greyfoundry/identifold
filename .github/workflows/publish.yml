@@ -1,0 +1,292 @@
+name: Publish
+
+run-name: Publish Identifold 1.0.0 to ${{ inputs.target }}
+
+on:
+  workflow_dispatch:
+    inputs:
+      target:
+        description: Registry to publish
+        required: true
+        type: choice
+        default: all
+        options:
+          - all
+          - npm
+          - pypi
+          - nuget
+          - crates
+          - rubygems
+          - maven-java
+          - maven-kotlin
+      confirmation:
+        description: Type PUBLISH 1.0.0
+        required: true
+        type: string
+
+permissions: {}
+
+concurrency:
+  group: publish-identifold-1.0.0
+  cancel-in-progress: false
+
+jobs:
+  guard:
+    name: Confirm release
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Require main and exact confirmation
+        env:
+          CONFIRMATION: ${{ inputs.confirmation }}
+          RELEASE_REF: ${{ github.ref }}
+        run: |
+          test "$RELEASE_REF" = "refs/heads/main"
+          test "$CONFIRMATION" = "PUBLISH 1.0.0"
+
+  npm:
+    name: npm
+    needs: guard
+    if: needs.guard.result == 'success' && (inputs.target == 'all' || inputs.target == 'npm')
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    environment: release
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Verify released source
+        run: git diff --exit-code v1.0.0 -- packages/typescript
+      - name: Set up Node.js
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 24
+          package-manager-cache: false
+          registry-url: https://registry.npmjs.org
+          scope: "@greyfoundry"
+      - name: Install pnpm
+        run: npm install --global pnpm@10.33.0
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+      - name: Verify package
+        run: pnpm verify
+      - name: Publish package
+        working-directory: packages/typescript
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: npm publish --access public --provenance
+
+  pypi:
+    name: PyPI
+    needs: guard
+    if: needs.guard.result == 'success' && (inputs.target == 'all' || inputs.target == 'pypi')
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    environment: release
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Verify released source
+        run: git diff --exit-code v1.0.0 -- packages/python
+      - name: Set up Python
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: "3.14"
+      - name: Build and test package
+        run: |
+          python -m pip install --disable-pip-version-check build==1.6.0 "./packages/python[test]"
+          python -m pytest packages/python/tests -q
+          python -m build packages/python
+      - name: Publish package
+        uses: pypa/gh-action-pypi-publish@dc37677b2e1c63e2034f94d8a5b11f265b73ba33 # v1.14.2
+        with:
+          packages-dir: packages/python/dist
+          print-hash: true
+
+  nuget:
+    name: NuGet
+    needs: guard
+    if: needs.guard.result == 'success' && (inputs.target == 'all' || inputs.target == 'nuget')
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    environment: release
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Verify released source
+        run: git diff --exit-code v1.0.0 -- packages/csharp
+      - name: Set up .NET
+        uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6.0.0
+        with:
+          dotnet-version: 9.0.x
+      - name: Test and pack
+        run: |
+          dotnet run --project packages/csharp/tests/Identifold.Tests/Identifold.Tests.csproj
+          dotnet pack packages/csharp/src/Identifold/Identifold.csproj --configuration Release --output .private/release/nuget
+      - name: Request temporary NuGet key
+        id: nuget-login
+        uses: NuGet/login@8d196754b4036150537f80ac539e15c2f1028841 # v1.2.0
+        with:
+          user: ${{ secrets.NUGET_USER }}
+      - name: Publish package
+        env:
+          NUGET_API_KEY: ${{ steps.nuget-login.outputs.NUGET_API_KEY }}
+        run: dotnet nuget push .private/release/nuget/*.nupkg --api-key "$NUGET_API_KEY" --source https://api.nuget.org/v3/index.json
+
+  crates:
+    name: crates.io
+    needs: guard
+    if: needs.guard.result == 'success' && (inputs.target == 'all' || inputs.target == 'crates')
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    environment: release
+    permissions:
+      contents: read
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Verify released source
+        run: git diff --exit-code v1.0.0 -- packages/rust
+      - name: Install stable Rust
+        run: rustup toolchain install stable --profile minimal --component rustfmt
+      - name: Verify package
+        working-directory: packages/rust
+        run: cargo fmt --check && cargo test --locked && cargo publish --dry-run --locked
+      - name: Publish package
+        working-directory: packages/rust
+        env:
+          CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
+        run: cargo publish --locked
+
+  rubygems:
+    name: RubyGems
+    needs: guard
+    if: needs.guard.result == 'success' && (inputs.target == 'all' || inputs.target == 'rubygems')
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    environment: release
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Verify released source
+        run: git diff --exit-code v1.0.0 -- packages/ruby
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@95ef2b042f9d7a56d8268cba8559e2842e2ad01b # v1 snapshot
+        with:
+          ruby-version: "4.0"
+      - name: Test and build package
+        working-directory: packages/ruby
+        run: ruby test/identifold_test.rb && gem build identifold.gemspec
+      - name: Configure trusted publishing
+        uses: rubygems/configure-rubygems-credentials@dc5a8d8553e6ee01fc26761a49e99e733d17954a # v2.1.0
+      - name: Publish package
+        working-directory: packages/ruby
+        run: gem push identifold-1.0.0.gem
+
+  maven-java:
+    name: Maven Central - Java
+    needs: guard
+    if: needs.guard.result == 'success' && (inputs.target == 'all' || inputs.target == 'maven-java')
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    environment: release
+    permissions:
+      contents: read
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Verify released source
+        run: git diff --exit-code v1.0.0 -- packages/java/src
+      - name: Set up Java and signing
+        uses: actions/setup-java@dd06d9cba3e5552c54d9f8ea23572deb30010f7c # v6.0.0
+        with:
+          distribution: temurin
+          java-version: "17"
+          cache: maven
+          cache-dependency-path: packages/java/pom.xml
+          server-id: central
+          server-username: CENTRAL_USERNAME
+          server-password: CENTRAL_PASSWORD
+          gpg-private-key: ${{ secrets.MAVEN_GPG_PRIVATE_KEY }}
+          gpg-passphrase: MAVEN_GPG_PASSPHRASE
+        env:
+          MAVEN_GPG_PASSPHRASE: ${{ secrets.MAVEN_GPG_PASSPHRASE }}
+      - name: Publish Java artifact
+        env:
+          CENTRAL_PASSWORD: ${{ secrets.CENTRAL_PASSWORD }}
+          CENTRAL_USERNAME: ${{ secrets.CENTRAL_USERNAME }}
+          MAVEN_GPG_PASSPHRASE: ${{ secrets.MAVEN_GPG_PASSPHRASE }}
+        run: mvn --batch-mode --no-transfer-progress --file packages/java/pom.xml --activate-profiles central-release deploy
+
+  maven-kotlin:
+    name: Maven Central - Kotlin
+    needs:
+      - guard
+      - maven-java
+    if: always() && needs.guard.result == 'success' && (inputs.target == 'maven-kotlin' || (inputs.target == 'all' && needs.maven-java.result == 'success'))
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    environment: release
+    permissions:
+      contents: read
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Verify released source
+        run: git diff --exit-code v1.0.0 -- packages/kotlin/src
+      - name: Set up Java and signing
+        uses: actions/setup-java@dd06d9cba3e5552c54d9f8ea23572deb30010f7c # v6.0.0
+        with:
+          distribution: temurin
+          java-version: "17"
+          cache: maven
+          cache-dependency-path: |
+            packages/java/pom.xml
+            packages/kotlin/pom.xml
+          server-id: central
+          server-username: CENTRAL_USERNAME
+          server-password: CENTRAL_PASSWORD
+          gpg-private-key: ${{ secrets.MAVEN_GPG_PRIVATE_KEY }}
+          gpg-passphrase: MAVEN_GPG_PASSPHRASE
+        env:
+          MAVEN_GPG_PASSPHRASE: ${{ secrets.MAVEN_GPG_PASSPHRASE }}
+      - name: Install Java dependency
+        run: mvn --batch-mode --no-transfer-progress --file packages/java/pom.xml install
+      - name: Publish Kotlin artifact
+        env:
+          CENTRAL_PASSWORD: ${{ secrets.CENTRAL_PASSWORD }}
+          CENTRAL_USERNAME: ${{ secrets.CENTRAL_USERNAME }}
+          MAVEN_GPG_PASSPHRASE: ${{ secrets.MAVEN_GPG_PASSPHRASE }}
+        run: mvn --batch-mode --no-transfer-progress --file packages/kotlin/pom.xml --activate-profiles central-release deploy
