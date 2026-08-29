@@ -1,7 +1,6 @@
 {
   "name": "greyfoundry/identifold",
   "description": "Identifold 1.0 identifiers for PHP",
-  "version": "1.0.0",
   "type": "library",
   "license": "Apache-2.0",
   "autoload": {

@@ -29,7 +29,9 @@ jobs:
       - name: Run conformance suite
         run: |
           mkdir -p .private/runtime/go
-          go build -o .private/runtime/go/identifold-adapter ./packages/go/cmd/identifold-adapter
+          cd packages/go
+          go build -o ../../.private/runtime/go/identifold-adapter ./cmd/identifold-adapter
+          cd ../..
           python3 conformance/runner.py --adapter .private/runtime/go/identifold-adapter --vectors vectors --json
 
   rust:
@@ -168,10 +170,8 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
-      - name: Set up Swift
-        uses: swift-actions/setup-swift@7591e4f04c00624cb043783da51a7fd6ee0a6bf6 # v2.4.0
-        with:
-          swift-version: "6.3.3"
+      - name: Verify Swift toolchain
+        run: swift --version
       - name: Format and test
         run: |
           swift format lint --strict --recursive packages/swift/Sources packages/swift/Tests packages/swift/Package.swift
