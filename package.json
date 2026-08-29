@@ -21,11 +21,13 @@
     "test": "pnpm --filter @greyfoundry/identifold test",
     "test:conformance": "python -m unittest conformance/test_runner.py",
     "test:database": "pnpm --filter @greyfoundry/identifold test:database",
-    "test:examples": "pnpm --dir examples/typescript test && python examples/python/basic.py",
+    "test:examples": "pnpm test:examples:typescript && pnpm test:examples:python",
+    "test:examples:python": "python examples/python/basic.py",
+    "test:examples:typescript": "pnpm --dir examples/typescript test",
     "test:python": "python -m pytest packages/python/tests -q",
     "test:coverage": "pnpm --filter @greyfoundry/identifold test:coverage",
     "typecheck": "pnpm --filter @greyfoundry/identifold typecheck",
-    "verify": "pnpm format:check && pnpm lint && pnpm typecheck && pnpm test && pnpm build && pnpm test:conformance && pnpm --filter @greyfoundry/identifold pack:check"
+    "verify": "pnpm format:check && pnpm lint && pnpm typecheck && pnpm test && pnpm build && pnpm test:examples:typescript && pnpm test:conformance && pnpm --filter @greyfoundry/identifold pack:check"
   },
   "devDependencies": {
     "@arethetypeswrong/cli": "^0.18.5",

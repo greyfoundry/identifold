@@ -38,6 +38,9 @@ jobs:
       - name: Test Python package
         run: python -m pytest packages/python/tests -q
 
+      - name: Run production example
+        run: python examples/python/basic.py
+
       - name: Lint Python package
         run: ruff check packages/python/src packages/python/tests conformance/python-adapter.py
 

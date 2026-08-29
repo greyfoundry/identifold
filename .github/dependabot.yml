@@ -28,3 +28,47 @@ updates:
     schedule:
       interval: weekly
     open-pull-requests-limit: 5
+
+  - package-ecosystem: gomod
+    directory: /packages/go
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5
+
+  - package-ecosystem: cargo
+    directory: /packages/rust
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5
+
+  - package-ecosystem: maven
+    directories:
+      - /packages/java
+      - /packages/kotlin
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5
+
+  - package-ecosystem: nuget
+    directory: /packages/csharp
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5
+
+  - package-ecosystem: composer
+    directory: /packages/php
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5
+
+  - package-ecosystem: bundler
+    directory: /packages/ruby
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5
+
+  - package-ecosystem: swift
+    directory: /packages/swift
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5
