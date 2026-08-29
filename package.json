@@ -17,7 +17,7 @@
     "build": "pnpm --filter @greyfoundry/identifold build",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "lint": "eslint .",
+    "lint": "pnpm build && eslint .",
     "test": "pnpm --filter @greyfoundry/identifold test",
     "test:conformance": "python -m unittest conformance/test_runner.py",
     "test:database": "pnpm --filter @greyfoundry/identifold test:database",
