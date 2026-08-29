@@ -1,6 +1,6 @@
 {
   "name": "@greyfoundry/identifold",
-  "version": "0.0.0",
+  "version": "1.0.0",
   "description": "TypeScript reference implementation of the Identifold specification.",
   "keywords": [
     "identifier",

@@ -19,7 +19,7 @@ This roadmap is the public delivery contract for Identifold. A phase is complete
 
 ## Version 1.0 multilingual release
 
-Status: In progress.
+Status: Release candidate. All implementation gates are complete; the clean `v1.0.0` tag and GitHub release are the remaining gate.
 
 The 1.0 release freezes the specification and conformance vectors, promotes the TypeScript and Python examples to tested production artifacts, and ships conforming implementations for TypeScript, Python, Java, C#, Go, PHP, Kotlin, Rust, Ruby, and Swift.
 
@@ -224,6 +224,6 @@ Exit gate:
 
 ## Stable release gate
 
-Identifold reaches 1.0 only when Phases 0 through 3 are complete, the TypeScript package has been used in a real application, the compatibility policy is published, and an independent implementation can pass the conformance suite.
+Identifold reaches 1.0 only when Phases 0 through 9 are complete, the compatibility policy is published, production examples are tested, all ten implementations pass the language-neutral conformance suite, and protected hosted checks cover every supported runtime.
 
-Current stable-release status: pre-release. Evidence of use in a real application remains required before 1.0.
+Current stable-release status: release candidate. Every implementation and hosted verification gate is complete; the final clean tag and GitHub release remain.

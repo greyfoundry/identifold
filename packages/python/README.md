@@ -1,6 +1,6 @@
 # identifold
 
-Python implementation of the Identifold wire specification. This package is pre-release and currently exists as an independent consumer of the language-neutral conformance suite.
+Python implementation of the stable Identifold 1.0 wire specification and an independent consumer of the language-neutral conformance suite.
 
 ```python
 from identifold import NamespaceRegistry, create_machine_id, public_id_from_machine_id

@@ -25,7 +25,7 @@ The project is specification-first. See [SPEC.md](SPEC.md) for the stable 1.0 no
 
 ## TypeScript quick start
 
-The reference package is currently developed in `packages/typescript` and has not yet been published.
+The stable TypeScript reference package is developed in `packages/typescript`. Release artifacts and registry publication status are listed in [IMPLEMENTATIONS.md](IMPLEMENTATIONS.md).
 
 ```ts
 import {
@@ -64,7 +64,7 @@ An in-memory uniqueness check is not a production allocation boundary for multip
 
 ## Status
 
-Identifold 1.0 implementation and release work is in progress. The stable wire contract, vector schema, and error taxonomy are frozen; the release remains pre-release until all required language implementations and hosted checks pass. Production uniqueness depends on the configured transactional storage boundary.
+Identifold 1.0 has a frozen wire contract, vector schema, and error taxonomy, with conforming implementations for ten languages. Production uniqueness depends on the configured transactional storage boundary.
 
 ## Security boundary
 

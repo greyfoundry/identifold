@@ -2,7 +2,7 @@
 
 TypeScript reference implementation of the Identifold specification.
 
-This package is pre-release and does not yet provide a stable API.
+This package implements the stable Identifold 1.0 API.
 
 ```ts
 import {

@@ -28,6 +28,76 @@ interface SpecificationManifest {
 }
 
 describe("specification contract", () => {
+  it("keeps release package metadata aligned with the stable manifest", () => {
+    const manifest = JSON.parse(
+      readFileSync(
+        new URL("../../../spec/manifest.json", import.meta.url),
+        "utf8",
+      ),
+    ) as SpecificationManifest;
+    const workspacePackage = JSON.parse(
+      readFileSync(new URL("../../../package.json", import.meta.url), "utf8"),
+    ) as { readonly version: string };
+    const typescriptPackage = JSON.parse(
+      readFileSync(new URL("../package.json", import.meta.url), "utf8"),
+    ) as { readonly version: string };
+    const pythonProject = readFileSync(
+      new URL("../../python/pyproject.toml", import.meta.url),
+      "utf8",
+    );
+    const pythonVersion = /^version = "([^"]+)"$/m.exec(pythonProject)?.[1];
+    const versionedPackages = [
+      workspacePackage.version,
+      typescriptPackage.version,
+      pythonVersion,
+      (
+        JSON.parse(
+          readFileSync(
+            new URL(
+              "../../../examples/typescript/package.json",
+              import.meta.url,
+            ),
+            "utf8",
+          ),
+        ) as { readonly version: string }
+      ).version,
+      /<Version>([^<]+)<\/Version>/.exec(
+        readFileSync(
+          new URL(
+            "../../csharp/src/Identifold/Identifold.csproj",
+            import.meta.url,
+          ),
+          "utf8",
+        ),
+      )?.[1],
+      /^version = "([^"]+)"$/m.exec(
+        readFileSync(new URL("../../rust/Cargo.toml", import.meta.url), "utf8"),
+      )?.[1],
+      /spec\.version = "([^"]+)"/.exec(
+        readFileSync(
+          new URL("../../ruby/identifold.gemspec", import.meta.url),
+          "utf8",
+        ),
+      )?.[1],
+      ...["java", "kotlin"].map(
+        (language) =>
+          /<version>([^<]+)<\/version>/.exec(
+            readFileSync(
+              new URL(`../../${language}/pom.xml`, import.meta.url),
+              "utf8",
+            ),
+          )?.[1],
+      ),
+    ];
+
+    expect(versionedPackages).toEqual(
+      Array.from(
+        { length: versionedPackages.length },
+        () => manifest.release.packageVersion,
+      ),
+    );
+  });
+
   it("publishes the complete stable error-code taxonomy", () => {
     expect(identifold).toHaveProperty("IDENTIFOLD_ERROR_CODES", [
       "allocation_conflict",

@@ -5,7 +5,7 @@ import (
 	"errors"
 	"os"
 
-	identifold "github.com/greyfoundry/identifold-go"
+	identifold "github.com/greyfoundry/identifold/packages/go"
 )
 
 type request struct {

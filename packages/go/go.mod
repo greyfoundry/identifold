@@ -1,3 +1,3 @@
-module github.com/greyfoundry/identifold-go
+module github.com/greyfoundry/identifold/packages/go
 
 go 1.23

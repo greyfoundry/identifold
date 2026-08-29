@@ -33,7 +33,10 @@ jobs:
           python-version: ${{ matrix.python }}
 
       - name: Install package
-        run: python -m pip install --disable-pip-version-check -e "./packages/python[test]"
+        run: python -m pip install --disable-pip-version-check build==1.6.0 -e "./packages/python[test]"
+
+      - name: Build distributions
+        run: python -m build packages/python
 
       - name: Test Python package
         run: python -m pytest packages/python/tests -q
