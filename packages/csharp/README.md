@@ -17,6 +17,7 @@ dotnet add package Greyfoundry.Identifold --version 1.0.0
 ```csharp
 using Greyfoundry.Identifold;
 
+var mid = "019d4c72-c910-7a84-b313-53c3ac61a32f";
 var pid = Identifiers.PublicIdFromMachineId(mid, "order");
 var parsed = Identifiers.ParsePublicId(pid);
 ```

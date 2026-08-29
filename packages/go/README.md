@@ -17,6 +17,7 @@ go get github.com/greyfoundry/identifold/packages/go@v1.0.0
 ```go
 import "github.com/greyfoundry/identifold/packages/go"
 
+mid := "019d4c72-c910-7a84-b313-53c3ac61a32f"
 pid, err := identifold.PublicIDFromMachineID(mid, "order")
 parsed, err := identifold.ParsePublicID(pid)
 ```

@@ -24,6 +24,7 @@ Add `.product(name: "Identifold", package: "identifold")` to the target that con
 ```swift
 import Identifold
 
+let mid = "019d4c72-c910-7a84-b313-53c3ac61a32f"
 let pid = try Identifiers.publicID(from: mid, namespace: "order")
 let parsed = try Identifiers.parsePublicID(pid)
 ```

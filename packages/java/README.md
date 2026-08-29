@@ -21,6 +21,7 @@ The Java implementation targets Java 17 and the stable Identifold 1.0 MID, PID, 
 ```java
 import io.greyfoundry.identifold.Identifold;
 
+var mid = "019d4c72-c910-7a84-b313-53c3ac61a32f";
 var pid = Identifold.publicIdFromMachineId(mid, "order");
 var parsed = Identifold.parsePublicId(pid);
 ```

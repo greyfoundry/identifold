@@ -15,6 +15,7 @@ cargo add identifold@1.0.0
 ## Quick start
 
 ```rust
+let mid = "019d4c72-c910-7a84-b313-53c3ac61a32f";
 let pid = identifold::public_id_from_machine_id(mid, "order")?;
 let parsed = identifold::parse_public_id(&pid)?;
 ```

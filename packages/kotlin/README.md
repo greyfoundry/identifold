@@ -21,6 +21,7 @@ The Kotlin package provides an idiomatic JVM API for the stable Identifold 1.0 M
 ```kotlin
 import io.greyfoundry.identifold.KotlinIdentifold
 
+val mid = "019d4c72-c910-7a84-b313-53c3ac61a32f"
 val pid = KotlinIdentifold.publicIdFromMachineId(mid, "order")
 val parsed = KotlinIdentifold.parsePublicId(pid)
 ```
