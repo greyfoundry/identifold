@@ -1,8 +1,20 @@
 # @greyfoundry/identifold
 
+[![npm](https://img.shields.io/npm/v/%40greyfoundry%2Fidentifold?logo=npm)](https://www.npmjs.com/package/@greyfoundry/identifold)
+[![CI](https://github.com/greyfoundry/identifold/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/greyfoundry/identifold/actions/workflows/ci.yml)
+[![Node.js](https://img.shields.io/node/v/%40greyfoundry%2Fidentifold?logo=nodedotjs)](package.json)
+
 TypeScript reference implementation of the Identifold specification.
 
 This package implements the stable Identifold 1.0 API.
+
+## Install
+
+```console
+npm install @greyfoundry/identifold
+```
+
+## Quick start
 
 ```ts
 import {
@@ -78,3 +90,13 @@ Allocator values are `bigint` so widths up to 18 decimal digits remain exact. Ca
 - `sequenceAllocator` transactionally allocates and binds sequential references.
 
 The default MID source delegates UUIDv7 generation to `uuid`. PID encoding and decoding delegate to `typeid-js` so the package does not maintain separate implementations of either standard. Injected MID and random sources are intended for deterministic tests and controlled platform integrations; production sources must retain the security guarantees described in the specification.
+
+## Verification
+
+```console
+pnpm build
+pnpm test
+pnpm pack:check
+```
+
+Node.js 22, 24, and 26 run the complete package verification and [language-neutral conformance suite](https://github.com/greyfoundry/identifold/tree/main/conformance). Version 1.0.0 is publicly installable from npm with a provenance attestation.

@@ -8,3 +8,5 @@ All notable changes to Identifold are documented in this file.
 - Add production examples for TypeScript and Python.
 - Add conforming Java, C#, Go, PHP, Kotlin, Rust, Ruby, and Swift implementations.
 - Extend protected hosted verification across all required language runtimes.
+- Publish all ten language distributions to their public package ecosystems.
+- Add trusted, provenance-backed publishing for npm, PyPI, crates.io, RubyGems, and NuGet.

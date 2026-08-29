@@ -1,5 +1,5 @@
 # Identifold for Kotlin
 
-The Kotlin API is documented in the package source and the canonical Identifold repository:
+This directory supplies the documentation artifact attached to the Maven Central release.
 
-https://github.com/greyfoundry/identifold
+The Kotlin API, installation instructions, conformance status, and stable wire contract are documented in the [canonical Identifold repository](https://github.com/greyfoundry/identifold/tree/main/packages/kotlin).

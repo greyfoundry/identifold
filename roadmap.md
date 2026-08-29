@@ -23,6 +23,8 @@ Status: Complete. All exit gates are satisfied by the `v1.0.0` release.
 
 The 1.0 release freezes the specification and conformance vectors, promotes the TypeScript and Python examples to tested production artifacts, and ships conforming implementations for TypeScript, Python, Java, C#, Go, PHP, Kotlin, Rust, Ruby, and Swift.
 
+Distribution status: all ten public package targets are verified live. See [IMPLEMENTATIONS.md](IMPLEMENTATIONS.md) for registry links and runtime requirements.
+
 Exit gate:
 
 - every implementation passes every required language-neutral vector;
