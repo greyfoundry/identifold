@@ -9,4 +9,5 @@ Gem::Specification.new do |spec|
   spec.required_ruby_version = ">= 3.2"
   spec.files = Dir["lib/**/*.rb"] + ["README.md"]
   spec.require_paths = ["lib"]
+  spec.add_dependency "pg", "~> 1.6"
 end

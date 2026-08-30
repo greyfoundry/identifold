@@ -6,6 +6,7 @@ from .base import (
     ReferenceStore,
     SequenceAllocationRequest,
     SequenceAllocator,
+    StorageAdapter,
 )
 
 __all__ = [
@@ -16,4 +17,5 @@ __all__ = [
     "ReferenceStore",
     "SequenceAllocationRequest",
     "SequenceAllocator",
+    "StorageAdapter",
 ]

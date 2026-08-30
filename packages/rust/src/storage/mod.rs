@@ -3,6 +3,9 @@ use std::pin::Pin;
 
 use crate::Error;
 
+#[cfg(feature = "postgres")]
+pub mod postgres;
+
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct ReferenceReservation {
     pub machine_id: String,

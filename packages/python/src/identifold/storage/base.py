@@ -40,6 +40,10 @@ class SequenceAllocator(Protocol):
     async def allocate(self, request: SequenceAllocationRequest) -> int: ...
 
 
+class StorageAdapter(ReferenceStore, ReferenceLookup, SequenceAllocator, Protocol):
+    pass
+
+
 @dataclass(frozen=True, slots=True)
 class IdentifoldStorageAdapter:
     reference_store: ReferenceStore

@@ -1,5 +1,7 @@
 using Greyfoundry.Identifold;
 using Greyfoundry.Identifold.Storage;
+using Greyfoundry.Identifold.Storage.Postgres;
+using Npgsql;
 
 const string mid = "019d4c72-c910-7a84-b313-53c3ac61a32f";
 var pid = Identifiers.PublicIdFromMachineId(mid, "order");
@@ -17,6 +19,55 @@ var mapping = await storageAdapter.ResolveAsync(reservation.Reference, reservati
 if (mapping?.MachineId != mid) throw new Exception("resolve");
 if (await storageAdapter.AllocateAsync(new SequenceAllocationRequest(
     mid, "receipt", "RCT", null, 4)) != 1) throw new Exception("allocate");
+
+var databaseUrl = Environment.GetEnvironmentVariable("IDENTIFOLD_TEST_DATABASE_URL");
+if (databaseUrl is not null)
+{
+    var uri = new Uri(databaseUrl);
+    var credentials = uri.UserInfo.Split(':', 2);
+    var connectionString = new NpgsqlConnectionStringBuilder
+    {
+        Host = uri.Host,
+        Port = uri.Port,
+        Database = uri.AbsolutePath.TrimStart('/'),
+        Username = credentials[0],
+        Password = credentials[1],
+    }.ConnectionString;
+    await using var dataSource = NpgsqlDataSource.Create(connectionString);
+    await using (var connection = await dataSource.OpenConnectionAsync())
+    {
+        var root = Directory.GetCurrentDirectory();
+        while (!Directory.Exists(Path.Combine(root, "integrations")))
+            root = Directory.GetParent(root)?.FullName ?? throw new Exception("repository root");
+        foreach (var migration in new[]
+        {
+            "001_identifold.down.sql",
+            "001_identifold.up.sql",
+            "003_idempotent_replay.up.sql",
+            "004_reference_lookup.up.sql",
+        })
+        {
+            await using var command = connection.CreateCommand();
+            command.CommandText = await File.ReadAllTextAsync(Path.Combine(
+                root, "integrations", "postgres", "migrations", migration));
+            await command.ExecuteNonQueryAsync();
+        }
+    }
+
+    var postgres = new PostgresStorageAdapter(dataSource);
+    const string randomMid = "01890f8c-7b2a-7cc3-98b0-112233445566";
+    const string randomRef = "ORD-0123-4567-89-P";
+    if (!await postgres.ReserveAsync(new(randomMid, "order", randomRef)))
+        throw new Exception("postgres reserve");
+    if ((await postgres.ResolveAsync(randomRef, "order"))?.MachineId != randomMid)
+        throw new Exception("postgres resolve");
+    var request = new SequenceAllocationRequest(
+        "01890f8c-7b2a-7cc3-98b0-112233445567", "receipt", "RCT", null, 4);
+    if (await postgres.AllocateAsync(request) != 1 || await postgres.AllocateAsync(request) != 1)
+        throw new Exception("postgres allocate");
+    if ((await postgres.ResolveAsync("RCT-0001-1", "receipt"))?.MachineId != request.MachineId)
+        throw new Exception("postgres sequential resolve");
+}
 
 sealed class FakeStorage : IStorageAdapter
 {

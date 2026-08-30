@@ -1,0 +1,51 @@
+{
+    "_readme": [
+        "This file locks the dependencies of your project to a known state",
+        "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
+        "This file is @generated automatically"
+    ],
+    "content-hash": "31b76b89b72f12cff9ae8ab909f47b3e",
+    "packages": [
+        {
+            "name": "greyfoundry/identifold",
+            "version": "dev-main",
+            "dist": {
+                "type": "path",
+                "url": "../../packages/php",
+                "reference": "797fbd83d11ecbe94c3d3a7c48b35743d5942fb6"
+            },
+            "require": {
+                "ext-pdo": "*",
+                "php": ">=8.2"
+            },
+            "suggest": {
+                "ext-pdo_pgsql": "Required by the PostgreSQL storage adapter"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "Greyfoundry\\Identifold\\": "src/"
+                }
+            },
+            "license": [
+                "Apache-2.0"
+            ],
+            "description": "Identifold 1.0 identifiers for PHP",
+            "transport-options": {
+                "symlink": false,
+                "relative": true
+            }
+        }
+    ],
+    "packages-dev": [],
+    "aliases": [],
+    "minimum-stability": "stable",
+    "stability-flags": {
+        "greyfoundry/identifold": 20
+    },
+    "prefer-stable": false,
+    "prefer-lowest": false,
+    "platform": {},
+    "platform-dev": {},
+    "plugin-api-version": "2.9.0"
+}

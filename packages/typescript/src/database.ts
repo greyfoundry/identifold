@@ -5,11 +5,14 @@ import type {
   SequenceAllocationRequest,
   SequenceAllocator,
 } from "./service.js";
+import type { ReferenceLookup } from "./resolver.js";
 
 export const RESERVE_REFERENCE_SQL =
   "SELECT identifold_reserve_reference($1::uuid, $2::text, $3::text) AS reserved";
 export const ALLOCATE_SEQUENCE_SQL =
   "SELECT identifold_allocate_sequence($1::uuid, $2::text, $3::text, $4::text, $5::smallint) AS sequence";
+export const RESOLVE_REFERENCE_SQL =
+  "SELECT resolved_machine_id::text AS machine_id, resolved_namespace AS namespace FROM identifold_resolve_reference($1::text, $2::text)";
 
 export type DatabaseQuery = (
   text: string,
@@ -70,6 +73,32 @@ export function createDatabaseSequenceAllocator(
       }
     },
   });
+}
+
+export function createDatabaseReferenceLookup(
+  query: DatabaseQuery,
+): ReferenceLookup {
+  return async (reference, namespace) => {
+    try {
+      const rows = await query(RESOLVE_REFERENCE_SQL, [reference, namespace]);
+      if (rows.length === 0) return null;
+      const machineId = rows[0]?.machine_id;
+      const resolvedNamespace = rows[0]?.namespace;
+      if (
+        rows.length !== 1 ||
+        typeof machineId !== "string" ||
+        typeof resolvedNamespace !== "string"
+      ) {
+        throw new IdentifoldError(
+          "allocation_conflict",
+          "Reference lookup returned an invalid result",
+        );
+      }
+      return Object.freeze({ machineId, namespace: resolvedNamespace });
+    } catch (error) {
+      throw mapDatabaseError(error);
+    }
+  };
 }
 
 function mapDatabaseError(error: unknown): IdentifoldError {

@@ -8,10 +8,12 @@ import {
   createMachineId,
   createNamespaceRegistry,
   createReferenceCandidate,
+  formatSequentialReference,
 } from "../src/index.js";
 import {
   createPostgresReferenceStore,
   createPostgresSequenceAllocator,
+  createPostgresStorageAdapter,
 } from "../src/postgres.js";
 import {
   createPrismaReferenceStore,
@@ -31,6 +33,10 @@ describeDatabase("PostgreSQL integration", () => {
     {
       publicPrefix: "ticket",
       reference: { prefix: "TKT", strategy: "random" },
+    },
+    {
+      publicPrefix: "receipt",
+      reference: { prefix: "RCT", strategy: "sequence", width: 4 },
     },
   ]);
   const reference = createReferenceCandidate(registry, "ticket", {
@@ -60,6 +66,10 @@ describeDatabase("PostgreSQL integration", () => {
     "../../../integrations/postgres/migrations/003_idempotent_replay.down.sql",
     import.meta.url,
   );
+  const lookupUpUrl = new URL(
+    "../../../integrations/postgres/migrations/004_reference_lookup.up.sql",
+    import.meta.url,
+  );
 
   afterAll(async () => {
     await pool.end();
@@ -69,6 +79,7 @@ describeDatabase("PostgreSQL integration", () => {
     await pool.query(readFileSync(downUrl, "utf8"));
     await pool.query(readFileSync(upUrl, "utf8"));
     await pool.query(readFileSync(replayUpUrl, "utf8"));
+    await pool.query(readFileSync(lookupUpUrl, "utf8"));
   });
 
   beforeEach(async () => {
@@ -87,9 +98,11 @@ describeDatabase("PostgreSQL integration", () => {
     const up = readFileSync(upUrl, "utf8");
     const down = readFileSync(downUrl, "utf8");
     const replayUp = readFileSync(replayUpUrl, "utf8");
+    const lookupUp = readFileSync(lookupUpUrl, "utf8");
     await pool.query(down);
     await pool.query(up);
     await pool.query(replayUp);
+    await pool.query(lookupUp);
 
     const created = await pool.query<{ table_name: string }>(
       `SELECT table_name
@@ -111,6 +124,7 @@ describeDatabase("PostgreSQL integration", () => {
     expect(removed.rows[0]?.table_name).toBeNull();
     await pool.query(up);
     await pool.query(replayUp);
+    await pool.query(lookupUp);
   });
 
   it("upgrades existing allocations and reverses only replay behavior", async () => {
@@ -158,6 +172,45 @@ describeDatabase("PostgreSQL integration", () => {
       "SELECT count(*) FROM identifold_references",
     );
     expect(count.rows[0]?.count).toBe("1");
+  });
+
+  it("groups reservation, allocation, and random or sequential lookup", async () => {
+    const adapter = createPostgresStorageAdapter(pool);
+    const randomMachineId = createMachineId();
+    await expect(
+      adapter.referenceStore.reserve({
+        machineId: randomMachineId,
+        namespace: "ticket",
+        reference,
+      }),
+    ).resolves.toBe(true);
+    await expect(adapter.lookup(reference, "ticket")).resolves.toEqual({
+      machineId: randomMachineId,
+      namespace: "ticket",
+    });
+
+    const sequentialMachineId = createMachineId();
+    const sequence = await adapter.sequenceAllocator.allocate({
+      machineId: sequentialMachineId,
+      namespace: "receipt",
+      referencePrefix: "RCT",
+      scope: null,
+      width: 4,
+    });
+    const sequentialReference = formatSequentialReference(
+      registry,
+      "receipt",
+      sequence,
+    );
+    await expect(
+      adapter.lookup(sequentialReference, "receipt"),
+    ).resolves.toEqual({
+      machineId: sequentialMachineId,
+      namespace: "receipt",
+    });
+    await expect(
+      adapter.lookup("TKT-1111-1111-11-U" as typeof reference, "ticket"),
+    ).resolves.toBeNull();
   });
 
   it("stores and reverses original legacy aliases", async () => {

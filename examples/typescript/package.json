@@ -9,10 +9,12 @@
     "test": "pnpm build && node dist/basic.test.js"
   },
   "dependencies": {
-    "@greyfoundry/identifold": "workspace:*"
+    "@greyfoundry/identifold": "workspace:*",
+    "pg": "^8.23.0"
   },
   "devDependencies": {
     "@types/node": "^26.0.0",
+    "@types/pg": "^8.23.1",
     "typescript": "^6.0.3"
   }
 }

@@ -9,6 +9,10 @@
     }
   },
   "require": {
-    "php": ">=8.2"
+    "php": ">=8.2",
+    "ext-pdo": "*"
+  },
+  "suggest": {
+    "ext-pdo_pgsql": "Required by the PostgreSQL storage adapter"
   }
 }
