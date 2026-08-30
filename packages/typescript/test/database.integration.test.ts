@@ -52,6 +52,14 @@ describeDatabase("PostgreSQL integration", () => {
     "../../../integrations/postgres/migrations/002_legacy_aliases.down.sql",
     import.meta.url,
   );
+  const replayUpUrl = new URL(
+    "../../../integrations/postgres/migrations/003_idempotent_replay.up.sql",
+    import.meta.url,
+  );
+  const replayDownUrl = new URL(
+    "../../../integrations/postgres/migrations/003_idempotent_replay.down.sql",
+    import.meta.url,
+  );
 
   afterAll(async () => {
     await pool.end();
@@ -60,6 +68,7 @@ describeDatabase("PostgreSQL integration", () => {
   beforeAll(async () => {
     await pool.query(readFileSync(downUrl, "utf8"));
     await pool.query(readFileSync(upUrl, "utf8"));
+    await pool.query(readFileSync(replayUpUrl, "utf8"));
   });
 
   beforeEach(async () => {
@@ -77,8 +86,10 @@ describeDatabase("PostgreSQL integration", () => {
 
     const up = readFileSync(upUrl, "utf8");
     const down = readFileSync(downUrl, "utf8");
+    const replayUp = readFileSync(replayUpUrl, "utf8");
     await pool.query(down);
     await pool.query(up);
+    await pool.query(replayUp);
 
     const created = await pool.query<{ table_name: string }>(
       `SELECT table_name
@@ -99,6 +110,35 @@ describeDatabase("PostgreSQL integration", () => {
     );
     expect(removed.rows[0]?.table_name).toBeNull();
     await pool.query(up);
+    await pool.query(replayUp);
+  });
+
+  it("upgrades existing allocations and reverses only replay behavior", async () => {
+    const replayUp = readFileSync(replayUpUrl, "utf8");
+    const replayDown = readFileSync(replayDownUrl, "utf8");
+    await pool.query(replayDown);
+    const allocator = createPostgresSequenceAllocator(pool);
+    const request = {
+      machineId: createMachineId(),
+      namespace: "ticket",
+      referencePrefix: "TKT",
+      scope: "2026",
+      width: 4,
+    } as const;
+    await expect(allocator.allocate(request)).resolves.toBe(1n);
+    await expect(allocator.allocate(request)).rejects.toMatchObject({
+      code: "allocation_conflict",
+    });
+
+    await pool.query(replayUp);
+    await expect(allocator.allocate(request)).resolves.toBe(1n);
+    const allocation = await pool.query<{
+      machine_id: string;
+      sequence: string;
+    }>("SELECT machine_id, sequence FROM identifold_sequence_allocations");
+    expect(allocation.rows).toEqual([
+      { machine_id: request.machineId, sequence: "1" },
+    ]);
   });
 
   it("allows exactly one concurrent reservation for a reference", async () => {
@@ -163,6 +203,78 @@ describeDatabase("PostgreSQL integration", () => {
     );
   });
 
+  it("returns the committed sequence when the same MID is replayed", async () => {
+    const allocator = createPostgresSequenceAllocator(pool);
+    const machineId = createMachineId();
+    const request = {
+      machineId,
+      namespace: "ticket",
+      referencePrefix: "TKT",
+      scope: "2026",
+      width: 4,
+    } as const;
+
+    await expect(allocator.allocate(request)).resolves.toBe(1n);
+    await expect(allocator.allocate(request)).resolves.toBe(1n);
+
+    const state = await pool.query<{ allocations: string; last_value: string }>(
+      `SELECT count(*)::text AS allocations, max(s.last_value)::text AS last_value
+       FROM identifold_sequence_allocations a
+       JOIN identifold_sequences s USING (namespace, scope)`,
+    );
+    expect(state.rows[0]).toEqual({ allocations: "1", last_value: "1" });
+  });
+
+  it("returns one committed value for concurrent replays of the same MID", async () => {
+    const allocator = createPostgresSequenceAllocator(pool);
+    const request = {
+      machineId: createMachineId(),
+      namespace: "ticket",
+      referencePrefix: "TKT",
+      scope: "2026",
+      width: 4,
+    } as const;
+
+    const allocated = await Promise.all(
+      Array.from({ length: 32 }, () => allocator.allocate(request)),
+    );
+    expect(allocated).toEqual(Array<bigint>(32).fill(1n));
+
+    const state = await pool.query<{ allocations: string; last_value: string }>(
+      `SELECT count(*)::text AS allocations, max(s.last_value)::text AS last_value
+       FROM identifold_sequence_allocations a
+       JOIN identifold_sequences s USING (namespace, scope)`,
+    );
+    expect(state.rows[0]).toEqual({ allocations: "1", last_value: "1" });
+  });
+
+  it.each([
+    ["reference prefix", { referencePrefix: "BAD" }],
+    ["width", { width: 5 }],
+  ] as const)("rejects a replay that changes the %s", async (_, change) => {
+    const allocator = createPostgresSequenceAllocator(pool);
+    const machineId = createMachineId();
+    const request = {
+      machineId,
+      namespace: "ticket",
+      referencePrefix: "TKT",
+      scope: "2026",
+      width: 4,
+    } as const;
+    await expect(allocator.allocate(request)).resolves.toBe(1n);
+
+    await expect(
+      allocator.allocate({ ...request, ...change }),
+    ).rejects.toMatchObject({ code: "invalid_allocation_policy" });
+
+    const state = await pool.query<{ allocations: string; last_value: string }>(
+      `SELECT count(*)::text AS allocations, max(s.last_value)::text AS last_value
+       FROM identifold_sequence_allocations a
+       JOIN identifold_sequences s USING (namespace, scope)`,
+    );
+    expect(state.rows[0]).toEqual({ allocations: "1", last_value: "1" });
+  });
+
   it("rolls back sequence overflow", async () => {
     await pool.query(
       "INSERT INTO identifold_sequences VALUES ('ticket', '', 'TKT', 4, 9999)",
@@ -182,6 +294,46 @@ describeDatabase("PostgreSQL integration", () => {
       "SELECT last_value FROM identifold_sequences WHERE namespace = 'ticket' AND scope = ''",
     );
     expect(state.rows[0]?.last_value).toBe("9999");
+  });
+
+  it("rolls back the counter when allocation binding fails", async () => {
+    await pool.query(`
+      CREATE FUNCTION identifold_test_reject_allocation() RETURNS trigger
+      LANGUAGE plpgsql AS $$
+      BEGIN
+        RAISE EXCEPTION USING ERRCODE = '40001', MESSAGE = 'injected_failure';
+      END;
+      $$;
+      CREATE TRIGGER identifold_test_reject_allocation
+      BEFORE INSERT ON identifold_sequence_allocations
+      FOR EACH ROW EXECUTE FUNCTION identifold_test_reject_allocation();
+    `);
+
+    try {
+      await expect(
+        createPostgresSequenceAllocator(pool).allocate({
+          machineId: createMachineId(),
+          namespace: "ticket",
+          referencePrefix: "TKT",
+          scope: null,
+          width: 4,
+        }),
+      ).rejects.toMatchObject({ code: "allocation_conflict" });
+    } finally {
+      await pool.query(`
+        DROP TRIGGER IF EXISTS identifold_test_reject_allocation
+          ON identifold_sequence_allocations;
+        DROP FUNCTION IF EXISTS identifold_test_reject_allocation();
+      `);
+    }
+
+    const state = await pool.query<{
+      allocations: string;
+      sequences: string;
+    }>(`SELECT
+      (SELECT count(*)::text FROM identifold_sequence_allocations) AS allocations,
+      (SELECT count(*)::text FROM identifold_sequences) AS sequences`);
+    expect(state.rows[0]).toEqual({ allocations: "0", sequences: "0" });
   });
 
   it("supports Prisma-compatible clients through the shared functions", async () => {
