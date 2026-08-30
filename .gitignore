@@ -17,6 +17,8 @@ examples/ruby/.bundle/
 *.egg-info/
 *.py[cod]
 *.tgz
+*.gem
+packages/php/vendor/
 .DS_Store
 Thumbs.db
 *.log

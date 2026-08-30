@@ -1,5 +1,7 @@
 use serde::{Deserialize, Serialize};
 
+pub mod storage;
+
 const DATA: &str = "0123456789ABCDEFGHJKMNPQRSTVWXYZ";
 const CHECK: &str = "0123456789ABCDEFGHJKMNPQRSTVWXYZ*~$=U";
 const TYPEID: &str = "0123456789abcdefghjkmnpqrstvwxyz";

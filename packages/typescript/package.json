@@ -74,6 +74,10 @@
       "types": "./dist/resolver.d.ts",
       "import": "./dist/resolver.js"
     },
+    "./storage": {
+      "types": "./dist/storage.d.ts",
+      "import": "./dist/storage.js"
+    },
     "./zod": {
       "types": "./dist/zod.d.ts",
       "import": "./dist/zod.js"

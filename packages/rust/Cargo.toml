@@ -10,6 +10,9 @@ repository = "https://github.com/greyfoundry/identifold"
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 
+[dev-dependencies]
+futures = "0.3"
+
 [[bin]]
 name = "identifold-adapter"
 path = "src/bin/adapter.rs"
