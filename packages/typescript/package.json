@@ -54,6 +54,10 @@
       "types": "./dist/middleware.d.ts",
       "import": "./dist/middleware.js"
     },
+    "./mysql": {
+      "types": "./dist/mysql.d.ts",
+      "import": "./dist/mysql.js"
+    },
     "./observability": {
       "types": "./dist/observability.d.ts",
       "import": "./dist/observability.js"
@@ -78,6 +82,10 @@
       "types": "./dist/storage.d.ts",
       "import": "./dist/storage.js"
     },
+    "./sqlite": {
+      "types": "./dist/sqlite.d.ts",
+      "import": "./dist/sqlite.js"
+    },
     "./zod": {
       "types": "./dist/zod.d.ts",
       "import": "./dist/zod.js"
@@ -101,14 +109,22 @@
   },
   "peerDependencies": {
     "@prisma/client": ">=7 <9",
+    "better-sqlite3": ">=12 <14",
     "drizzle-orm": ">=0.45 <1",
+    "mysql2": ">=3 <4",
     "pg": ">=8 <9"
   },
   "peerDependenciesMeta": {
     "@prisma/client": {
       "optional": true
     },
+    "better-sqlite3": {
+      "optional": true
+    },
     "drizzle-orm": {
+      "optional": true
+    },
+    "mysql2": {
       "optional": true
     },
     "pg": {
@@ -117,9 +133,12 @@
   },
   "devDependencies": {
     "@prisma/client": "^7.10.0",
+    "@types/better-sqlite3": "^9.6.0",
     "@types/pg": "^8.23.1",
+    "better-sqlite3": "^13.0.3",
     "drizzle-orm": "^0.45.2",
     "fast-check": "^4.9.0",
+    "mysql2": "^3.24.2",
     "pg": "^8.23.0"
   },
   "publishConfig": {
