@@ -25,6 +25,8 @@ The 1.0 release freezes the specification and conformance vectors, promotes the 
 
 Distribution status: all ten public package targets are verified live. See [IMPLEMENTATIONS.md](IMPLEMENTATIONS.md) for registry links and runtime requirements.
 
+Post-release hardening on `main` extends the executable production-example gate to all ten languages and maintains a complete installation, operations, and release handbook in the project wiki. These additions do not change the stable 1.0 wire contract.
+
 Exit gate:
 
 - every implementation passes every required language-neutral vector;

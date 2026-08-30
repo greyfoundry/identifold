@@ -6,12 +6,18 @@ let package = Package(
   name: "Identifold",
   platforms: [.macOS(.v13)],
   products: [
-    .library(name: "Identifold", targets: ["Identifold"])
+    .library(name: "Identifold", targets: ["Identifold"]),
+    .executable(name: "IdentifoldExample", targets: ["IdentifoldExample"]),
   ],
   targets: [
     .target(
       name: "Identifold",
       path: "packages/swift/Sources/Identifold"
+    ),
+    .executableTarget(
+      name: "IdentifoldExample",
+      dependencies: ["Identifold"],
+      path: "examples/swift"
     ),
     .testTarget(
       name: "IdentifoldTests",

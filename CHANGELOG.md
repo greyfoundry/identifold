@@ -2,6 +2,11 @@
 
 All notable changes to Identifold are documented in this file.
 
+## Unreleased
+
+- Add executable production examples for all ten supported languages.
+- Expand installation, identity-flow, and operational documentation across the repository and wiki.
+
 ## 1.0.0 - 2026-08-29
 
 - Freeze the Identifold 1.0 specification and conformance vectors.

@@ -26,6 +26,9 @@ jobs:
       - name: Test and vet
         working-directory: packages/go
         run: go test ./... && go vet ./...
+      - name: Run production example
+        working-directory: examples/go
+        run: go run .
       - name: Run conformance suite
         run: |
           mkdir -p .private/runtime/go
@@ -47,6 +50,8 @@ jobs:
       - name: Test and format
         working-directory: packages/rust
         run: cargo fmt --check && cargo test --locked && cargo package --locked && cargo build --release --locked --bin identifold-adapter
+      - name: Run production example
+        run: cargo run --locked --manifest-path examples/rust/Cargo.toml
       - name: Run conformance suite
         run: python3 conformance/runner.py --adapter packages/rust/target/release/identifold-adapter --vectors vectors --json
 
@@ -69,6 +74,11 @@ jobs:
           mkdir -p .private/runtime/java/classes
           javac --release 17 -d .private/runtime/java/classes $(find packages/java/src/main packages/java/src/test -name '*.java')
           java -cp .private/runtime/java/classes io.greyfoundry.identifold.IdentifoldTest
+      - name: Run production example
+        run: |
+          mkdir -p .private/runtime/examples/java
+          javac --release 17 -cp .private/runtime/java/classes -d .private/runtime/examples/java examples/java/Basic.java
+          java -cp ".private/runtime/java/classes:.private/runtime/examples/java" Basic
       - name: Run conformance suite
         run: python3 conformance/runner.py --adapter conformance/java-adapter.py --vectors vectors --json
 
@@ -88,6 +98,8 @@ jobs:
         run: |
           dotnet run --project packages/csharp/tests/Identifold.Tests/Identifold.Tests.csproj
           dotnet pack packages/csharp/src/Identifold/Identifold.csproj --configuration Release --output .private/runtime/csharp/package
+      - name: Run production example
+        run: dotnet run --project examples/csharp/Identifold.Example.csproj
       - name: Build adapter
         run: dotnet publish packages/csharp/src/Identifold.Adapter/Identifold.Adapter.csproj -c Release -o .private/runtime/csharp
       - name: Run conformance suite
@@ -110,6 +122,9 @@ jobs:
         run: |
           composer validate --strict packages/php/composer.json
           php -d zend.assertions=1 -d assert.exception=1 packages/php/tests/IdentifoldTest.php
+      - name: Run production example
+        working-directory: examples/php
+        run: composer install --no-interaction --no-progress && php basic.php
       - name: Run conformance suite
         run: python3 conformance/runner.py --adapter conformance/php-adapter.py --vectors vectors --json
 
@@ -128,6 +143,9 @@ jobs:
       - name: Test and build package
         working-directory: packages/ruby
         run: ruby test/identifold_test.rb && gem build identifold.gemspec
+      - name: Run production example
+        working-directory: examples/ruby
+        run: bundle install && bundle exec ruby basic.rb
       - name: Run conformance suite
         run: python3 conformance/runner.py --adapter conformance/ruby-adapter.py --vectors vectors --json
 
@@ -162,6 +180,15 @@ jobs:
             -d .private/runtime/kotlin/classes
           java -cp ".private/runtime/java/classes:.private/runtime/kotlin/classes:.private/runtime/kotlin/kotlinc/lib/kotlin-stdlib.jar" \
             io.greyfoundry.identifold.IdentifoldTestKt
+      - name: Run production example
+        run: |
+          mkdir -p .private/runtime/examples/kotlin
+          .private/runtime/kotlin/kotlinc/bin/kotlinc \
+            -classpath ".private/runtime/java/classes:.private/runtime/kotlin/classes" \
+            examples/kotlin/Basic.kt \
+            -d .private/runtime/examples/kotlin
+          java -cp ".private/runtime/java/classes:.private/runtime/kotlin/classes:.private/runtime/examples/kotlin:.private/runtime/kotlin/kotlinc/lib/kotlin-stdlib.jar" \
+            BasicKt
       - name: Run conformance suite
         env:
           IDENTIFOLD_KOTLIN_CLASSPATH: .private/runtime/java/classes:.private/runtime/kotlin/classes:.private/runtime/kotlin/kotlinc/lib/kotlin-stdlib.jar
@@ -179,10 +206,11 @@ jobs:
         run: swift --version
       - name: Format and test
         run: |
-          swift format lint --strict --recursive Package.swift packages/swift/Sources packages/swift/Tests packages/swift/Package.swift
+          swift format lint --strict --recursive Package.swift examples/swift packages/swift/Sources packages/swift/Tests packages/swift/Package.swift
           swift package describe
           swift test
           swift test --package-path packages/swift
+          swift run IdentifoldExample
       - name: Run conformance suite
         run: |
           SWIFT_BIN_PATH="$(swift build --package-path packages/swift --show-bin-path)"

@@ -8,7 +8,7 @@ Include the affected version or commit, impact, reproduction conditions, and any
 
 ## Supported versions
 
-Identifold is pre-release. Until the first stable release, security fixes are applied to the latest development line only.
+Identifold 1.x is the supported stable release line. Security fixes are applied to the latest 1.x release and the current `main` branch.
 
 ## Security boundary
 

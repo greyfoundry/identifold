@@ -8,6 +8,10 @@ build/
 target/
 packages/csharp/**/bin/
 packages/csharp/**/obj/
+examples/csharp/**/bin/
+examples/csharp/**/obj/
+examples/php/vendor/
+examples/ruby/.bundle/
 .gradle/
 .build/
 *.egg-info/

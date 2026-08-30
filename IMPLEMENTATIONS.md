@@ -31,6 +31,8 @@ All ten implementations currently pass:
 - round-trip and invalid-input vectors; and
 - the shared stable error taxonomy.
 
+Each implementation also has an executable consumer example under [`examples/`](examples/README.md). The example is compiled or run by that language's protected hosted job so package-facing API drift fails CI independently of the low-level conformance adapter.
+
 ## Release model
 
 The GitHub [`v1.0.0`](https://github.com/greyfoundry/identifold/releases/tag/v1.0.0) release contains the canonical source for every implementation. Each registry remains an independent distribution target:

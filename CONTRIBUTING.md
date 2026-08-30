@@ -7,7 +7,8 @@ Identifold is specification-first. Changes to a wire format or normative behavio
 Requirements:
 
 - Node.js 22 or newer;
-- pnpm 10.33.0 or a compatible pnpm 10 release.
+- pnpm 10.33.0 or a compatible pnpm 10 release; and
+- Python 3.12 or newer for the conformance runner.
 
 Install and verify:
 
@@ -15,6 +16,8 @@ Install and verify:
 pnpm install --frozen-lockfile
 pnpm verify
 ```
+
+Changes to a language implementation or its production example also require that language's native toolchain. The pinned hosted versions and exact verification commands are maintained in [`.github/workflows/languages.yml`](.github/workflows/languages.yml) and [`.github/workflows/python.yml`](.github/workflows/python.yml).
 
 Tests should describe observable behavior, use literal independently derived expectations, and include invalid boundary cases. Compatibility changes require vectors that can be consumed without reading the TypeScript source.
 
