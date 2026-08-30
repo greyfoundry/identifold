@@ -10,10 +10,11 @@ struct PostgresExample {
       let url = URL(string: value), let host = url.host,
       let user = url.user, let password = url.password
     else { throw IdentifoldError("allocation_conflict") }
-    let client = PostgresClient(configuration: .init(
-      host: host, port: url.port ?? 5432, username: user, password: password,
-      database: String(url.path.dropFirst()), tls: .disable
-    ))
+    let client = PostgresClient(
+      configuration: .init(
+        host: host, port: url.port ?? 5432, username: user, password: password,
+        database: String(url.path.dropFirst()), tls: .disable
+      ))
     try await withThrowingTaskGroup(of: Void.self) { group in
       group.addTask { await client.run() }
       defer { group.cancelAll() }

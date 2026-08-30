@@ -3,6 +3,7 @@ name = "identifold-example-rust"
 version = "1.0.0"
 edition = "2024"
 publish = false
+default-run = "identifold-example-rust"
 
 [dependencies]
 identifold = { path = "../../packages/rust", features = ["postgres"] }

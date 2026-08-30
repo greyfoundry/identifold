@@ -17,12 +17,14 @@ let package = Package(
     .executableTarget(
       name: "IdentifoldExample",
       dependencies: ["Identifold"],
-      path: "examples/swift"
+      path: "examples/swift",
+      exclude: ["database"]
     ),
     .testTarget(
       name: "IdentifoldTests",
       dependencies: ["Identifold"],
-      path: "packages/swift/Tests/IdentifoldTests"
+      path: "packages/swift/Tests/IdentifoldTests",
+      exclude: ["PostgresStorageTests.swift"]
     ),
   ]
 )

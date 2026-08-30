@@ -11,7 +11,7 @@ let package = Package(
     .executable(name: "identifold-adapter", targets: ["IdentifoldAdapter"]),
   ],
   dependencies: [
-    .package(url: "https://github.com/vapor/postgres-nio.git", from: "1.21.0"),
+    .package(url: "https://github.com/vapor/postgres-nio.git", from: "1.21.0")
   ],
   targets: [
     .target(name: "Identifold"),

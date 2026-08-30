@@ -72,7 +72,9 @@ jobs:
         run: |
           mvn --batch-mode --no-transfer-progress --file packages/java/pom.xml package
           mkdir -p .private/runtime/java/classes
-          javac --release 17 -d .private/runtime/java/classes $(find packages/java/src/main packages/java/src/test -name '*.java')
+          javac --release 17 -d .private/runtime/java/classes \
+            $(find packages/java/src/main -name '*.java') \
+            packages/java/src/test/java/io/greyfoundry/identifold/IdentifoldTest.java
           java -cp .private/runtime/java/classes io.greyfoundry.identifold.IdentifoldTest
       - name: Run production example
         run: |

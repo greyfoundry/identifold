@@ -8,4 +8,7 @@
   <ItemGroup>
     <ProjectReference Include="../../packages/csharp/src/Identifold/Identifold.csproj" />
   </ItemGroup>
+  <ItemGroup>
+    <Compile Remove="database/**/*.cs" />
+  </ItemGroup>
 </Project>

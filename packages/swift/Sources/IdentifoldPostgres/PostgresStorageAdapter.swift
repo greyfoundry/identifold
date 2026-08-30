@@ -11,7 +11,8 @@ public struct PostgresStorageAdapter: StorageAdapter, Sendable {
 
   public func reserve(_ request: ReferenceReservation) async throws -> Bool {
     try await databaseOperation {
-      let rows = try await client.query("""
+      let rows = try await client.query(
+        """
         SELECT identifold_reserve_reference(
           \(request.machineID)::text::uuid,
           \(request.namespace)::text,
@@ -28,7 +29,8 @@ public struct PostgresStorageAdapter: StorageAdapter, Sendable {
 
   public func resolve(reference: String, namespace: String) async throws -> ReferenceMapping? {
     try await databaseOperation {
-      let rows = try await client.query("""
+      let rows = try await client.query(
+        """
         SELECT resolved_machine_id::text, resolved_namespace
         FROM identifold_resolve_reference(\(reference)::text, \(namespace)::text)
         """)
@@ -45,7 +47,8 @@ public struct PostgresStorageAdapter: StorageAdapter, Sendable {
     try await databaseOperation {
       let rows: PostgresRowSequence
       if let scope = request.scope {
-        rows = try await client.query("""
+        rows = try await client.query(
+          """
           SELECT identifold_allocate_sequence(
             \(request.machineID)::text::uuid,
             \(request.namespace)::text,
@@ -55,7 +58,8 @@ public struct PostgresStorageAdapter: StorageAdapter, Sendable {
           )
           """)
       } else {
-        rows = try await client.query("""
+        rows = try await client.query(
+          """
           SELECT identifold_allocate_sequence(
             \(request.machineID)::text::uuid,
             \(request.namespace)::text,
