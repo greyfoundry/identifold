@@ -238,14 +238,15 @@ Define one behavioral contract before adding database-specific implementations.
 Deliverables:
 
 - language-neutral storage contract for reservation, resolution, sequence allocation, replay, and errors;
-- reusable lifecycle, concurrency, rollback, and consistency harness;
-- PostgreSQL migration onto the shared harness;
+- reusable lifecycle, concurrency, rollback, and consistency runners for all ten implementation languages;
+- native PostgreSQL storage contracts and adapters for TypeScript, Python, Rust, Go, Java, Kotlin, C#, Swift, Ruby, and PHP;
+- PostgreSQL migration of every language package onto the shared harness;
 - idempotent same-MID sequence replay; and
 - public architecture and operations documentation.
 
 Exit gate:
 
-- PostgreSQL passes every shared storage suite without regressing its current guarantees;
+- PostgreSQL passes every shared storage suite in all ten languages without regressing its current guarantees;
 - concurrent reservation produces exactly one winner;
 - sequential counter advancement and binding roll back together;
 - same-MID replay returns the committed sequence; and
@@ -257,17 +258,17 @@ Add the highest-value relational and embedded storage integrations.
 
 Deliverables:
 
-- MySQL 8.4 InnoDB migrations, adapter, example, and operations guide;
-- SQLite migrations, adapter, example, busy handling, and WAL guidance;
-- MariaDB compatibility evidence; and
+- MySQL 8.4 InnoDB migrations, native adapters and examples for all ten languages, and an operations guide;
+- SQLite migrations, native adapters and examples for all ten languages, busy handling, and WAL guidance;
+- MariaDB compatibility evidence through all ten MySQL adapters; and
 - protected hosted jobs for both primary backends.
 
 Exit gate:
 
-- MySQL and SQLite pass every shared lifecycle, concurrency, rollback, replay, and overflow suite;
+- MySQL and SQLite pass every shared lifecycle, concurrency, rollback, replay, and overflow suite in all ten languages;
 - UUIDv7 storage preserves all 128 bits without UUIDv1 byte swapping;
 - SQLite documents its single-writer and same-host WAL boundaries; and
-- public examples execute through supported drivers.
+- all twenty public language-and-backend examples execute through supported drivers.
 
 ## Phase 12: MongoDB and DynamoDB
 
@@ -275,14 +276,14 @@ Add document and serverless key-value integrations.
 
 Deliverables:
 
-- MongoDB unique indexes, transaction adapter, example, and Atlas guidance;
-- DynamoDB table design, conditional reservation, transactional allocation, example, and capacity guidance;
+- MongoDB unique indexes, native adapters and examples for all ten languages, and Atlas guidance;
+- DynamoDB table design, conditional reservation, transactional native adapters and examples for all ten languages, and capacity guidance;
 - replica-set and DynamoDB Local verification; and
 - protected hosted jobs.
 
 Exit gate:
 
-- both backends pass every shared storage suite;
+- both backends pass every shared storage suite in all ten languages;
 - post-commit resolution uses the documented consistent-read path;
 - retry behavior is bounded and same-MID replay is durable; and
 - no standalone non-idempotent counter can allocate a REF.
@@ -293,13 +294,13 @@ Add enterprise SQL and managed document integrations.
 
 Deliverables:
 
-- SQL Server migrations, locked counter-row procedures, adapter, example, and Azure SQL guidance;
-- Firestore collection model, transaction adapter, example, emulator tests, and security-rule guidance; and
+- SQL Server migrations, locked counter-row procedures, native adapters and examples for all ten languages, and Azure SQL guidance;
+- Firestore collection model, transactional native adapters and examples for all ten languages, emulator tests, and security-rule guidance; and
 - protected hosted jobs for both backends.
 
 Exit gate:
 
-- both backends pass every shared storage suite;
+- both backends pass every shared storage suite in all ten languages;
 - SQL Server sequence objects are not used where rollback cannot bind the value atomically;
 - Firestore allocation cannot be performed by untrusted direct client writes; and
 - operational errors remain sanitized.
@@ -310,19 +311,19 @@ Certify compatible databases and publish the additive integration release.
 
 Deliverables:
 
-- MariaDB, CockroachDB, and YugabyteDB conformance reports;
+- MariaDB, CockroachDB, and YugabyteDB conformance reports covering all ten language adapters;
 - explicit backend differences and retry guidance;
 - complete root, package, integration, and wiki documentation;
 - protected compatibility jobs; and
-- provenance-backed npm release.
+- provenance-backed or tokenless releases for all ten language packages where their registries support them.
 
 Exit gate:
 
-- each compatibility claim is backed by the full applicable storage suite;
+- each compatibility claim is backed by the full applicable storage suite in all ten languages;
 - managed DynamoDB and Firestore pass protected live-cloud certification in addition to emulator checks;
-- every integration and example is green on the release commit;
+- all seventy primary language-and-backend integrations and examples are green on the release commit;
 - all new hosted checks are required on protected `main`;
-- public installation is verified from the registry; and
+- public installation is verified from all ten package registries; and
 - the stable 1.0 wire contract remains unchanged.
 
 ## Stable release gate

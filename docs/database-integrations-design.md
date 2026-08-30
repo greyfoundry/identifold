@@ -1,8 +1,8 @@
 # Database integrations design
 
-- Status: approved direction; written design pending review
+- Status: approved, including native integrations for all ten language packages
 - Date: 2026-08-30
-- Target: additive `@greyfoundry/identifold` 1.1 integration release
+- Target: additive Identifold 1.1 integration release across all published packages
 
 ## 1. Purpose
 
@@ -23,14 +23,14 @@ The stable MID, PID, REF wire formats and error taxonomy do not change. The work
 
 The program provides:
 
-- one backend-neutral storage-conformance contract expressed as public cases and an executable TypeScript harness;
+- one backend-neutral storage-conformance contract expressed as public cases and executable adapters for every supported language;
 - native migrations, indexes, procedures, or collection definitions where the backend supports them;
-- first-party TypeScript adapters exposed through package subpaths;
-- executable examples and operational documentation;
-- local or containerized integration tests; and
+- first-party PostgreSQL, MySQL, SQLite, MongoDB, DynamoDB, SQL Server, and Firestore adapters for TypeScript, Python, Rust, Go, Java, Kotlin, C#, Swift, Ruby, and PHP;
+- executable database examples in all ten languages and operational documentation;
+- local, emulator, or containerized integration tests for every language-and-backend pair; and
 - protected hosted checks for every supported backend.
 
-It does not create every database adapter in every language. That would multiply six backends by ten implementation languages without adding wire compatibility. Non-TypeScript applications can use the published native database artifacts and storage contract, while first-party client adapters initially follow the TypeScript reference implementation.
+All seventy primary adapter combinations are production deliverables: seven storage backends, including PostgreSQL, across ten implementation languages. A backend is not listed as supported for a language until that native adapter passes the shared behavioral contract. The shared contract prevents language-specific drivers from weakening Identifold's allocation guarantees.
 
 It also does not:
 
@@ -45,17 +45,17 @@ It also does not:
 
 ### 3.1 Contract-first subpath integrations: selected
 
-Add a shared conformance harness, native backend artifacts, and optional driver-backed subpath exports such as `@greyfoundry/identifold/mysql` and `@greyfoundry/identifold/mongodb`.
+Add a shared conformance harness, native backend artifacts, and idiomatic driver-backed integration modules in each language package. TypeScript uses subpath exports such as `@greyfoundry/identifold/mysql`; other ecosystems use their established module, namespace, feature, extra, or package conventions.
 
 Advantages:
 
-- preserves the current package and PostgreSQL subpath model;
+- preserves each language package's current public identity and the TypeScript PostgreSQL subpath model;
 - keeps one release and compatibility policy;
 - permits independent backend implementation waves;
 - gives every integration the same observable contract; and
-- avoids installing database drivers unless their subpath is used.
+- isolates database drivers through optional dependencies, feature flags, extras, or integration-specific modules where the ecosystem supports that model.
 
-Trade-off: the core package metadata gains several optional peer dependencies.
+Trade-off: ecosystems that cannot express optional transitive dependencies may require integration-specific companion artifacts or explicitly selected build features.
 
 ### 3.2 One npm package per database
 
@@ -95,7 +95,7 @@ Identifold service
    shared storage-conformance harness
 ```
 
-Each integration factory returns the existing service boundaries rather than introducing a general database abstraction:
+Each integration factory returns the same three service boundaries rather than introducing a general database abstraction. The following TypeScript shape is the normative structural example; every other language exposes the idiomatic equivalent:
 
 ```ts
 interface IdentifoldStorageAdapter {
@@ -341,9 +341,26 @@ New exports:
 - `@greyfoundry/identifold/sqlserver`; and
 - `@greyfoundry/identifold/firestore`.
 
-Database drivers are optional peer dependencies and matching development dependencies. Importing `@greyfoundry/identifold` never loads a database driver. Each integration guide gives the two-package install command and supported driver range.
+TypeScript database drivers are optional peer dependencies and matching development dependencies. Importing `@greyfoundry/identifold` never loads a database driver. Each integration guide gives the application package plus driver installation command and supported driver range.
 
 The existing `/postgres`, `/prisma`, and `/drizzle` exports remain backward compatible. PostgreSQL is migrated onto the shared adapter result and conformance harness without removing current factories.
+
+Every published language follows an ecosystem-native isolation model:
+
+| Language   | Integration packaging                                                                                                           |
+| ---------- | ------------------------------------------------------------------------------------------------------------------------------- |
+| TypeScript | package subpath exports with optional peer drivers                                                                              |
+| Python     | `identifold.storage` plus `mysql`, `mongodb`, `dynamodb`, `sqlserver`, and `firestore` extras; SQLite uses the standard library |
+| Rust       | `storage` plus opt-in Cargo features for each driver                                                                            |
+| Go         | `storage` and backend subpackages; applications import only the selected subpackages                                            |
+| Java       | core storage interfaces in the existing artifact plus optional Maven driver dependencies                                        |
+| Kotlin     | idiomatic coroutine wrappers over the Java storage contract and drivers                                                         |
+| C#         | core storage interfaces plus backend namespaces and explicit NuGet driver dependencies                                          |
+| Swift      | storage protocols plus backend targets selected as Swift Package products                                                       |
+| Ruby       | `Identifold::Storage` plus backend files loaded explicitly; drivers remain optional gem dependencies                            |
+| PHP        | `Greyfoundry\\Identifold\\Storage` plus backend namespaces; Composer suggests the selected driver packages                      |
+
+The main identifier API remains usable without any database driver in every language. Driver dependencies are locked for tests, documented with supported ranges, and loaded only when the corresponding adapter is selected.
 
 ## 9. Repository layout
 
@@ -351,8 +368,18 @@ The existing `/postgres`, `/prisma`, and `/drizzle` exports remain backward comp
 conformance/storage/
   contract.md
   manifest.json
-  harness.ts
-  suites/
+  fixtures/
+  runners/
+    typescript/
+    python/
+    rust/
+    go/
+    java/
+    kotlin/
+    csharp/
+    swift/
+    ruby/
+    php/
 
 integrations/
   postgres/
@@ -363,21 +390,22 @@ integrations/
   sqlserver/
   firestore/
 
-packages/typescript/src/
-  storage.ts
-  mysql.ts
-  sqlite.ts
-  mongodb.ts
-  dynamodb.ts
-  sqlserver.ts
-  firestore.ts
+packages/<language>/
+  storage contract
+  postgres integration
+  mysql integration
+  sqlite integration
+  mongodb integration
+  dynamodb integration
+  sqlserver integration
+  firestore integration
 ```
 
-Each integration directory contains a README, setup artifacts, an executable example, and backend-specific operations guidance.
+Each integration directory contains a README, setup artifacts, one executable example per language, and backend-specific operations guidance. Package directories keep language-specific code in focused files or modules rather than a single generated implementation.
 
 ## 10. CI and branch protection
 
-Each primary backend receives a stable hosted job name suitable for branch protection:
+Each primary backend receives a ten-language test matrix and a stable aggregate hosted job name suitable for branch protection:
 
 - `MySQL 8.4`;
 - `SQLite`;
@@ -391,36 +419,38 @@ Each primary backend receives a stable hosted job name suitable for branch prote
 
 Jobs pin action revisions and backend versions, disable persisted checkout credentials, use least-privilege workflow permissions, and clean containers or emulator processes even after failure.
 
+Every matrix reports the language explicitly. The stable aggregate check fails if any supported language is skipped, cancelled, or unsuccessful, so branch protection does not need seventy individually maintained check names.
+
 DynamoDB Local and the Firestore Emulator are fast pull-request gates, not complete proof of managed-service behavior. Before stable support is declared, a protected release-environment workflow must run safe live reservation, replay, consistency, and cleanup tests against dedicated AWS and Google Cloud test resources. Credentials use OIDC federation and are never stored in the repository.
 
-The shared contract tests run against PostgreSQL first. A new backend job becomes required only when its implementation is complete and green, avoiding a permanently blocked `main` during development.
+The shared contract tests run against PostgreSQL in all ten languages first. A new backend aggregate becomes required only when all ten implementations are complete and green, avoiding a permanently blocked `main` during development.
 
 ## 11. Delivery waves and gates
 
 ### Foundation
 
-- shared storage types and conformance harness;
+- shared storage types and conformance runners for all ten languages;
 - PostgreSQL migrated to the harness;
 - idempotent sequence replay migration;
 - documentation and test fixtures.
 
-Exit gate: PostgreSQL preserves all current behavior and passes every shared suite under concurrency.
+Exit gate: PostgreSQL preserves all current behavior and passes every shared suite under concurrency in TypeScript, Python, Rust, Go, Java, Kotlin, C#, Swift, Ruby, and PHP.
 
 ### Wave 1: MySQL and SQLite
 
-Exit gate: both backends pass lifecycle, reservation, resolution, sequential, rollback, and example suites; MySQL and SQLite jobs are protected.
+Exit gate: both backends pass lifecycle, reservation, resolution, sequential, rollback, and example suites in all ten languages; MySQL and SQLite aggregate jobs are protected.
 
 ### Wave 2: MongoDB and DynamoDB
 
-Exit gate: both backends pass the same suites under replica-set and DynamoDB Local environments, with consistency and retry behavior documented; both jobs are protected.
+Exit gate: both backends pass the same suites in all ten languages under replica-set and DynamoDB Local environments, with consistency and retry behavior documented; both aggregate jobs are protected.
 
 ### Wave 3: SQL Server and Firestore
 
-Exit gate: both backends pass the same suites in SQL Server and Firestore Emulator environments, including server-side authorization guidance; both jobs are protected.
+Exit gate: both backends pass the same suites in all ten languages in SQL Server and Firestore Emulator environments, including server-side authorization guidance; both aggregate jobs are protected.
 
 ### Compatibility certification
 
-Exit gate: MariaDB, CockroachDB, and YugabyteDB each pass every applicable shared suite and publish explicit differences; compatibility jobs are protected.
+Exit gate: MariaDB, CockroachDB, and YugabyteDB each pass every applicable shared suite through all ten language adapters and publish explicit differences; compatibility aggregate jobs are protected.
 
 ### Release
 
@@ -428,12 +458,12 @@ Exit gate:
 
 - all new and existing checks are green on the release commit;
 - managed DynamoDB and Firestore certification passes against dedicated live test resources;
-- all integration examples execute;
-- package export and optional-peer checks pass;
+- all seventy primary adapter examples execute;
+- package exports, features, extras, companion modules, and optional dependency checks pass;
 - migrations are tested from clean and prior schemas;
 - wiki pages and root documentation are current;
-- the npm package is published with provenance through trusted publishing; and
-- public registry installation is verified before release status is marked live.
+- all ten language packages are published through their configured trusted or tokenless release paths where supported; and
+- public installation is verified from every registry before release status is marked live.
 
 ## 12. Risks and mitigations
 
@@ -451,9 +481,9 @@ Exit gate:
 
 The program is complete only when:
 
-- PostgreSQL, MySQL, SQLite, MongoDB, DynamoDB, SQL Server, and Firestore pass the shared contract;
-- MariaDB, CockroachDB, and YugabyteDB have explicit passing compatibility certification;
-- every integration has migration/setup, adapter, example, operations, and security documentation;
+- PostgreSQL, MySQL, SQLite, MongoDB, DynamoDB, SQL Server, and Firestore pass the shared contract in every one of the ten published languages;
+- MariaDB, CockroachDB, and YugabyteDB have explicit passing compatibility certification through every language adapter;
+- every language-and-backend integration has migration/setup, adapter, example, operations, and security documentation;
 - concurrent random reservation yields exactly one winner;
 - concurrent sequential allocation never duplicates a committed value;
 - same-MID retries are idempotent across every backend;
