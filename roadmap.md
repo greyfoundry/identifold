@@ -16,6 +16,11 @@ This roadmap is the public delivery contract for Identifold. A phase is complete
 | 7     | Complete | Python implementation satisfies all exit gates |
 | 8     | Complete | All exit gates satisfied                       |
 | 9     | Complete | All exit gates satisfied                       |
+| 10    | Planned  | Written storage-integration design approved    |
+| 11    | Planned  | MySQL and SQLite gates satisfied               |
+| 12    | Planned  | MongoDB and DynamoDB gates satisfied           |
+| 13    | Planned  | SQL Server and Firestore gates satisfied       |
+| 14    | Planned  | Compatibility and release gates satisfied      |
 
 ## Version 1.0 multilingual release
 
@@ -225,6 +230,100 @@ Exit gate:
 - extensions cannot weaken the default security and validation rules silently;
 - wire-format changes are versioned;
 - the core remains usable without advanced configuration.
+
+## Phase 10: Storage integration foundation
+
+Define one behavioral contract before adding database-specific implementations.
+
+Deliverables:
+
+- language-neutral storage contract for reservation, resolution, sequence allocation, replay, and errors;
+- reusable lifecycle, concurrency, rollback, and consistency harness;
+- PostgreSQL migration onto the shared harness;
+- idempotent same-MID sequence replay; and
+- public architecture and operations documentation.
+
+Exit gate:
+
+- PostgreSQL passes every shared storage suite without regressing its current guarantees;
+- concurrent reservation produces exactly one winner;
+- sequential counter advancement and binding roll back together;
+- same-MID replay returns the committed sequence; and
+- the written design in [docs/database-integrations-design.md](docs/database-integrations-design.md) is approved.
+
+## Phase 11: MySQL and SQLite
+
+Add the highest-value relational and embedded storage integrations.
+
+Deliverables:
+
+- MySQL 8.4 InnoDB migrations, adapter, example, and operations guide;
+- SQLite migrations, adapter, example, busy handling, and WAL guidance;
+- MariaDB compatibility evidence; and
+- protected hosted jobs for both primary backends.
+
+Exit gate:
+
+- MySQL and SQLite pass every shared lifecycle, concurrency, rollback, replay, and overflow suite;
+- UUIDv7 storage preserves all 128 bits without UUIDv1 byte swapping;
+- SQLite documents its single-writer and same-host WAL boundaries; and
+- public examples execute through supported drivers.
+
+## Phase 12: MongoDB and DynamoDB
+
+Add document and serverless key-value integrations.
+
+Deliverables:
+
+- MongoDB unique indexes, transaction adapter, example, and Atlas guidance;
+- DynamoDB table design, conditional reservation, transactional allocation, example, and capacity guidance;
+- replica-set and DynamoDB Local verification; and
+- protected hosted jobs.
+
+Exit gate:
+
+- both backends pass every shared storage suite;
+- post-commit resolution uses the documented consistent-read path;
+- retry behavior is bounded and same-MID replay is durable; and
+- no standalone non-idempotent counter can allocate a REF.
+
+## Phase 13: SQL Server and Firestore
+
+Add enterprise SQL and managed document integrations.
+
+Deliverables:
+
+- SQL Server migrations, locked counter-row procedures, adapter, example, and Azure SQL guidance;
+- Firestore collection model, transaction adapter, example, emulator tests, and security-rule guidance; and
+- protected hosted jobs for both backends.
+
+Exit gate:
+
+- both backends pass every shared storage suite;
+- SQL Server sequence objects are not used where rollback cannot bind the value atomically;
+- Firestore allocation cannot be performed by untrusted direct client writes; and
+- operational errors remain sanitized.
+
+## Phase 14: Compatibility certification and release
+
+Certify compatible databases and publish the additive integration release.
+
+Deliverables:
+
+- MariaDB, CockroachDB, and YugabyteDB conformance reports;
+- explicit backend differences and retry guidance;
+- complete root, package, integration, and wiki documentation;
+- protected compatibility jobs; and
+- provenance-backed npm release.
+
+Exit gate:
+
+- each compatibility claim is backed by the full applicable storage suite;
+- managed DynamoDB and Firestore pass protected live-cloud certification in addition to emulator checks;
+- every integration and example is green on the release commit;
+- all new hosted checks are required on protected `main`;
+- public installation is verified from the registry; and
+- the stable 1.0 wire contract remains unchanged.
 
 ## Stable release gate
 
