@@ -49,3 +49,140 @@ jobs:
         run: pnpm test:database
         env:
           IDENTIFOLD_TEST_DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:5432/identifold_test
+
+  postgres-storage:
+    name: PostgreSQL storage / ${{ matrix.language }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - language: typescript
+          - language: python
+          - language: rust
+          - language: go
+          - language: java
+          - language: kotlin
+          - language: csharp
+          - language: swift
+          - language: ruby
+          - language: php
+    services:
+      postgres:
+        image: postgres:18.6-alpine
+        env:
+          POSTGRES_DB: identifold_test
+          POSTGRES_PASSWORD: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    env:
+      IDENTIFOLD_TEST_DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:5432/identifold_test
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Set up Node.js
+        if: matrix.language == 'typescript'
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 24
+          package-manager-cache: false
+      - name: Test TypeScript storage
+        if: matrix.language == 'typescript'
+        run: npm install --global pnpm@10.33.0 && pnpm install --frozen-lockfile && pnpm test:database
+
+      - name: Set up Python
+        if: matrix.language == 'python'
+        uses: actions/setup-python@a3096b94650eca48f3a1968f290b1bb9e9b8c1d7 # v6.2.0
+        with:
+          python-version: "3.14"
+      - name: Test Python storage
+        if: matrix.language == 'python'
+        run: python -m pip install --disable-pip-version-check -e "packages/python[postgres,test]" && python -m pytest packages/python/tests/test_postgres_storage.py -q
+
+      - name: Set up Rust
+        if: matrix.language == 'rust'
+        run: rustup toolchain install stable --profile minimal
+      - name: Test Rust storage
+        if: matrix.language == 'rust'
+        working-directory: packages/rust
+        run: cargo test --locked --features postgres --test postgres_storage
+
+      - name: Set up Go
+        if: matrix.language == 'go'
+        uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+        with:
+          go-version: 1.26.x
+          cache-dependency-path: packages/go/go.sum
+      - name: Test Go storage
+        if: matrix.language == 'go'
+        working-directory: packages/go
+        run: go test ./storage/postgres -v
+
+      - name: Set up Java
+        if: matrix.language == 'java' || matrix.language == 'kotlin'
+        uses: actions/setup-java@dd06d9cba3e5552c54d9f8ea23572deb30010f7c # v6.0.0
+        with:
+          distribution: temurin
+          java-version: "17"
+      - name: Test Java storage
+        if: matrix.language == 'java'
+        run: mvn --batch-mode --no-transfer-progress --file packages/java/pom.xml test
+      - name: Test Kotlin storage
+        if: matrix.language == 'kotlin'
+        run: |
+          mvn --batch-mode --no-transfer-progress --file packages/java/pom.xml install -DskipTests
+          mvn --batch-mode --no-transfer-progress --file packages/kotlin/pom.xml test
+
+      - name: Set up .NET
+        if: matrix.language == 'csharp'
+        uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6.0.0
+        with:
+          dotnet-version: 9.0.x
+      - name: Test C# storage
+        if: matrix.language == 'csharp'
+        run: dotnet run --project packages/csharp/tests/Identifold.Tests/Identifold.Tests.csproj
+
+      - name: Test Swift storage
+        if: matrix.language == 'swift'
+        run: swift test --package-path packages/swift
+
+      - name: Set up Ruby
+        if: matrix.language == 'ruby'
+        uses: ruby/setup-ruby@95ef2b042f9d7a56d8268cba8559e2842e2ad01b # v1 snapshot
+        with:
+          ruby-version: "4.0"
+      - name: Test Ruby storage
+        if: matrix.language == 'ruby'
+        run: gem install pg --no-document && ruby packages/ruby/test/postgres_storage_test.rb
+
+      - name: Set up PHP
+        if: matrix.language == 'php'
+        uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240 # v2.37.2
+        with:
+          php-version: "8.5"
+          extensions: pdo_pgsql
+          tools: composer
+      - name: Test PHP storage
+        if: matrix.language == 'php'
+        working-directory: packages/php
+        run: composer install --no-interaction --no-progress && php -d zend.assertions=1 -d assert.exception=1 tests/PostgresStorageTest.php
+
+  postgres-storage-aggregate:
+    name: PostgreSQL storage
+    if: always()
+    needs:
+      - postgres-storage
+    runs-on: ubuntu-latest
+    steps:
+      - name: Require every language result
+        env:
+          STORAGE_RESULT: ${{ needs.postgres-storage.result }}
+        run: test "$STORAGE_RESULT" = success
