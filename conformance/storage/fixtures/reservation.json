@@ -1,0 +1,85 @@
+{
+  "fixtureVersion": 1,
+  "cases": [
+    {
+      "caseId": "reservation.new",
+      "operation": "reserve",
+      "request": {
+        "machineId": "01890f8c-7b2a-7cc3-98b0-112233445566",
+        "namespace": "order",
+        "reference": "ORD-0123-4567-89-P"
+      },
+      "expected": { "reserved": true }
+    },
+    {
+      "caseId": "reservation.duplicate-same-mid",
+      "operation": "reserveTwice",
+      "request": {
+        "machineId": "01890f8c-7b2a-7cc3-98b0-112233445566",
+        "namespace": "order",
+        "reference": "ORD-0123-4567-89-P"
+      },
+      "expected": { "reserved": [true, false] }
+    },
+    {
+      "caseId": "reservation.duplicate-other-mid",
+      "operation": "reserveCompeting",
+      "requests": [
+        {
+          "machineId": "01890f8c-7b2a-7cc3-98b0-112233445566",
+          "namespace": "order",
+          "reference": "ORD-0123-4567-89-P"
+        },
+        {
+          "machineId": "01890f8c-7b2a-7cc3-a8b0-665544332211",
+          "namespace": "order",
+          "reference": "ORD-0123-4567-89-P"
+        }
+      ],
+      "expected": { "reserved": [true, false] }
+    },
+    {
+      "caseId": "reservation.concurrent-one-winner",
+      "operation": "reserveConcurrent",
+      "requestTemplate": {
+        "namespace": "ticket",
+        "reference": "TKT-ZZZZ-ZZZZ-F"
+      },
+      "contenders": 32,
+      "expected": { "successCount": 1, "failureCount": 31 }
+    },
+    {
+      "caseId": "reservation.rollback",
+      "operation": "reserveWithInjectedFailure",
+      "request": {
+        "machineId": "01890f8c-7b2a-7cc3-b8b0-0123456789ab",
+        "namespace": "order",
+        "reference": "ORD-0123-4567-89-P"
+      },
+      "failurePoint": "afterWriteBeforeCommit",
+      "expected": { "error": "allocation_conflict", "mappingExists": false }
+    },
+    {
+      "caseId": "resolution.committed",
+      "operation": "reserveThenResolve",
+      "request": {
+        "machineId": "01890f8c-7b2a-7cc3-98b0-112233445566",
+        "namespace": "order",
+        "reference": "ORD-0123-4567-89-P"
+      },
+      "expected": {
+        "machineId": "01890f8c-7b2a-7cc3-98b0-112233445566",
+        "namespace": "order"
+      }
+    },
+    {
+      "caseId": "resolution.missing",
+      "operation": "resolve",
+      "request": {
+        "namespace": "ticket",
+        "reference": "TKT-ZZZZ-ZZZZ-F"
+      },
+      "expected": null
+    }
+  ]
+}

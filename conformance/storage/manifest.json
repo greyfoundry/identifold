@@ -1,0 +1,90 @@
+{
+  "schemaVersion": 1,
+  "fixtures": [
+    "fixtures/reservation.json",
+    "fixtures/sequential.json",
+    "fixtures/errors.json"
+  ],
+  "requiredCapabilities": [
+    "reservation",
+    "resolution",
+    "sequential-allocation",
+    "bounded-retry",
+    "sanitized-errors"
+  ],
+  "runners": {
+    "typescript": {
+      "command": [
+        "pnpm",
+        "--dir",
+        "packages/typescript",
+        "test",
+        "--",
+        "storage"
+      ]
+    },
+    "python": {
+      "command": [
+        "python",
+        "-m",
+        "pytest",
+        "packages/python/tests/test_storage.py"
+      ]
+    },
+    "rust": {
+      "command": [
+        "cargo",
+        "test",
+        "--manifest-path",
+        "packages/rust/Cargo.toml",
+        "storage"
+      ]
+    },
+    "go": {
+      "command": ["go", "test", "./packages/go/storage/..."]
+    },
+    "java": {
+      "command": [
+        "mvn",
+        "-f",
+        "packages/java/pom.xml",
+        "-Dtest=StorageContractTest",
+        "test"
+      ]
+    },
+    "kotlin": {
+      "command": [
+        "mvn",
+        "-f",
+        "packages/kotlin/pom.xml",
+        "-Dtest=StorageContractTest",
+        "test"
+      ]
+    },
+    "csharp": {
+      "command": [
+        "dotnet",
+        "test",
+        "packages/csharp/tests/Identifold.Tests/Identifold.Tests.csproj",
+        "--filter",
+        "StorageContract"
+      ]
+    },
+    "swift": {
+      "command": [
+        "swift",
+        "test",
+        "--package-path",
+        "packages/swift",
+        "--filter",
+        "StorageContract"
+      ]
+    },
+    "ruby": {
+      "command": ["ruby", "packages/ruby/test/storage_contract_test.rb"]
+    },
+    "php": {
+      "command": ["php", "packages/php/tests/StorageContractTest.php"]
+    }
+  }
+}

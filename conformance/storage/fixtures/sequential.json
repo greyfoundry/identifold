@@ -1,0 +1,146 @@
+{
+  "fixtureVersion": 1,
+  "cases": [
+    {
+      "caseId": "sequence.first",
+      "operation": "allocate",
+      "request": {
+        "machineId": "01890f8c-7b2a-7cc3-98b0-112233445566",
+        "namespace": "receipt",
+        "referencePrefix": "RCT",
+        "scope": null,
+        "width": 4
+      },
+      "expected": { "sequence": "1" }
+    },
+    {
+      "caseId": "sequence.next",
+      "operation": "allocateSeries",
+      "namespace": "receipt",
+      "referencePrefix": "RCT",
+      "scope": null,
+      "width": 4,
+      "count": 2,
+      "expected": { "sequences": ["1", "2"] }
+    },
+    {
+      "caseId": "sequence.concurrent-unique",
+      "operation": "allocateConcurrent",
+      "namespace": "receipt",
+      "referencePrefix": "RCT",
+      "scope": null,
+      "width": 4,
+      "contenders": 32,
+      "expected": { "minimum": "1", "maximum": "32", "uniqueCount": 32 }
+    },
+    {
+      "caseId": "sequence.namespace-isolation",
+      "operation": "allocateIndependent",
+      "requests": [
+        {
+          "namespace": "receipt",
+          "referencePrefix": "RCT",
+          "scope": null,
+          "width": 4
+        },
+        {
+          "namespace": "voucher",
+          "referencePrefix": "VCH",
+          "scope": null,
+          "width": 4
+        }
+      ],
+      "expected": { "sequences": ["1", "1"] }
+    },
+    {
+      "caseId": "sequence.scope-isolation",
+      "operation": "allocateIndependent",
+      "requests": [
+        {
+          "namespace": "invoice",
+          "referencePrefix": "INV",
+          "scope": "2026",
+          "width": 6
+        },
+        {
+          "namespace": "invoice",
+          "referencePrefix": "INV",
+          "scope": "2027",
+          "width": 6
+        }
+      ],
+      "expected": { "sequences": ["1", "1"] }
+    },
+    {
+      "caseId": "sequence.replay",
+      "operation": "allocateTwice",
+      "request": {
+        "machineId": "01890f8c-7b2a-7cc3-98b0-112233445566",
+        "namespace": "invoice",
+        "referencePrefix": "INV",
+        "scope": "2026",
+        "width": 6
+      },
+      "expected": { "sequences": ["1", "1"] }
+    },
+    {
+      "caseId": "sequence.replay-prefix-conflict",
+      "operation": "allocateReplayConflict",
+      "initial": { "referencePrefix": "INV", "width": 6 },
+      "replay": { "referencePrefix": "BIL", "width": 6 },
+      "namespace": "invoice",
+      "scope": "2026",
+      "expected": { "error": "invalid_allocation_policy" }
+    },
+    {
+      "caseId": "sequence.replay-width-conflict",
+      "operation": "allocateReplayConflict",
+      "initial": { "referencePrefix": "INV", "width": 6 },
+      "replay": { "referencePrefix": "INV", "width": 7 },
+      "namespace": "invoice",
+      "scope": "2026",
+      "expected": { "error": "invalid_allocation_policy" }
+    },
+    {
+      "caseId": "sequence.maximum",
+      "operation": "allocateFromState",
+      "initialLastValue": "998",
+      "request": {
+        "namespace": "receipt",
+        "referencePrefix": "RCT",
+        "scope": null,
+        "width": 3
+      },
+      "expected": { "sequence": "999" }
+    },
+    {
+      "caseId": "sequence.overflow",
+      "operation": "allocateFromState",
+      "initialLastValue": "999",
+      "request": {
+        "namespace": "receipt",
+        "referencePrefix": "RCT",
+        "scope": null,
+        "width": 3
+      },
+      "expected": { "error": "sequence_overflow", "lastValue": "999" }
+    },
+    {
+      "caseId": "sequence.rollback",
+      "operation": "allocateWithInjectedFailure",
+      "request": {
+        "machineId": "01890f8c-7b2a-7cc3-b8b0-0123456789ab",
+        "namespace": "receipt",
+        "referencePrefix": "RCT",
+        "scope": null,
+        "width": 4
+      },
+      "failurePoint": "afterCounterBeforeBinding",
+      "expected": {
+        "error": "allocation_conflict",
+        "lastValue": "0",
+        "mappingExists": false
+      }
+    }
+  ]
+}

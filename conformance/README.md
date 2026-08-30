@@ -39,3 +39,9 @@ The TypeScript adapter imports only the generated package output under `packages
 A passing adapter agrees with the stable vectors for MID, PID, REF, normalization, ordering, round trips, and error classification. It does not certify application storage, authentication, authorization, or operational security.
 
 The hosted suite currently runs adapters for TypeScript, Python, Go, Rust, Java, C#, PHP, Ruby, Kotlin, and Swift. See the [implementation matrix](https://github.com/greyfoundry/identifold/blob/main/IMPLEMENTATIONS.md) for public packages.
+
+## Storage conformance
+
+The [storage contract](storage/contract.md) separately certifies atomic REF reservation, lookup consistency, sequential allocation, replay, rollback, bounded retries, and sanitized storage errors. Its manifest names all ten language runners so a backend cannot be listed as fully supported while omitting one published package.
+
+Storage certification is backend-specific. Local emulators do not replace the protected live-cloud checks required for DynamoDB and Firestore releases.

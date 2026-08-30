@@ -1,0 +1,40 @@
+{
+  "fixtureVersion": 1,
+  "cases": [
+    {
+      "caseId": "retry.transient-success",
+      "operation": "retry",
+      "retryLimit": 5,
+      "transientFailures": 2,
+      "expected": { "attempts": 3, "result": "committed" }
+    },
+    {
+      "caseId": "retry.exhausted",
+      "operation": "retry",
+      "retryLimit": 5,
+      "transientFailures": 5,
+      "expected": { "attempts": 5, "error": "allocation_conflict" }
+    },
+    {
+      "caseId": "retry.invalid-limit-low",
+      "operation": "configureRetry",
+      "retryLimit": 0,
+      "expected": { "error": "invalid_allocation_policy" }
+    },
+    {
+      "caseId": "retry.invalid-limit-high",
+      "operation": "configureRetry",
+      "retryLimit": 11,
+      "expected": { "error": "invalid_allocation_policy" }
+    },
+    {
+      "caseId": "errors.sanitized",
+      "operation": "mapNativeError",
+      "nativeMessage": "password=secret customer@example.test ORD-0123-4567-89-P",
+      "expected": {
+        "error": "allocation_conflict",
+        "message": "Storage allocation could not be committed"
+      }
+    }
+  ]
+}
