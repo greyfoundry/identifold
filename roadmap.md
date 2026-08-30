@@ -16,7 +16,7 @@ This roadmap is the public delivery contract for Identifold. A phase is complete
 | 7     | Complete | Python implementation satisfies all exit gates |
 | 8     | Complete | All exit gates satisfied                       |
 | 9     | Complete | All exit gates satisfied                       |
-| 10    | Planned  | Written storage-integration design approved    |
+| 10    | Complete | All exit gates satisfied                       |
 | 11    | Planned  | MySQL and SQLite gates satisfied               |
 | 12    | Planned  | MongoDB and DynamoDB gates satisfied           |
 | 13    | Planned  | SQL Server and Firestore gates satisfied       |
@@ -232,6 +232,8 @@ Exit gate:
 - the core remains usable without advanced configuration.
 
 ## Phase 10: Storage integration foundation
+
+Status: Complete. PostgreSQL storage conformance now runs across all ten language implementations and is required on protected `main`.
 
 Define one behavioral contract before adding database-specific implementations.
 
