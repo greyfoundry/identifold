@@ -105,7 +105,7 @@
   "dependencies": {
     "typeid-js": "^1.2.0",
     "uuid": "^14.0.2",
-    "zod": "^4.4.3"
+    "zod": "^4.5.4"
   },
   "peerDependencies": {
     "@prisma/client": ">=7 <9",
