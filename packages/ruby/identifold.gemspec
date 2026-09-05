@@ -10,5 +10,6 @@ Gem::Specification.new do |spec|
   spec.files = Dir["lib/**/*.rb"] + ["README.md"]
   spec.require_paths = ["lib"]
   spec.add_dependency "pg", "~> 1.6"
+  spec.add_dependency "mysql2", "~> 0.5.7"
   spec.add_dependency "sqlite3", "~> 2.9"
 end

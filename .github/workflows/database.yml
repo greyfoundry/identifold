@@ -202,6 +202,7 @@ jobs:
           - kotlin
           - csharp
           - swift
+          - ruby
     services:
       mysql:
         image: mysql:8.4.7
@@ -314,6 +315,17 @@ jobs:
       - name: Test Swift storage
         if: matrix.language == 'swift'
         run: swift test --package-path packages/swift --filter MySQLStorageTests
+        env:
+          IDENTIFOLD_TEST_MYSQL_URL: mysql://root:root@127.0.0.1:3306/identifold_test
+
+      - name: Set up Ruby
+        if: matrix.language == 'ruby'
+        uses: ruby/setup-ruby@95ef2b042f9d7a56d8268cba8559e2842e2ad01b # v1 snapshot
+        with:
+          ruby-version: "4.0"
+      - name: Test Ruby storage
+        if: matrix.language == 'ruby'
+        run: gem install mysql2 --version 0.5.7 --no-document && ruby packages/ruby/test/mysql_storage_test.rb
         env:
           IDENTIFOLD_TEST_MYSQL_URL: mysql://root:root@127.0.0.1:3306/identifold_test
 
