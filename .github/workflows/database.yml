@@ -186,3 +186,78 @@ jobs:
         env:
           STORAGE_RESULT: ${{ needs.postgres-storage.result }}
         run: test "$STORAGE_RESULT" = success
+
+  mysql-storage:
+    name: MySQL storage / ${{ matrix.language }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        language:
+          - typescript
+          - go
+    services:
+      mysql:
+        image: mysql:8.4.7
+        env:
+          MYSQL_DATABASE: identifold_test
+          MYSQL_ROOT_PASSWORD: root
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping -h localhost -proot"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 10
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Apply MySQL migration
+        env:
+          MYSQL_CONTAINER: ${{ job.services.mysql.id }}
+        run: >-
+          docker exec -i "$MYSQL_CONTAINER" mysql -uroot -proot identifold_test
+          < integrations/mysql/migrations/001_identifold.up.sql
+
+      - name: Set up Node.js
+        if: matrix.language == 'typescript'
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 24
+          package-manager-cache: false
+      - name: Test TypeScript storage
+        if: matrix.language == 'typescript'
+        run: >-
+          npm install --global pnpm@10.33.0 &&
+          pnpm install --frozen-lockfile &&
+          pnpm --filter @greyfoundry/identifold exec vitest run test/mysql.integration.test.ts
+        env:
+          IDENTIFOLD_TEST_MYSQL_URL: mysql://root:root@127.0.0.1:3306/identifold_test
+
+      - name: Set up Go
+        if: matrix.language == 'go'
+        uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+        with:
+          go-version: 1.26.x
+          cache-dependency-path: packages/go/go.sum
+      - name: Test Go storage
+        if: matrix.language == 'go'
+        working-directory: packages/go
+        run: go test ./storage/mysql -v
+        env:
+          IDENTIFOLD_TEST_MYSQL_URL: root:root@tcp(127.0.0.1:3306)/identifold_test?parseTime=true
+
+  mysql-storage-aggregate:
+    name: MySQL storage
+    if: always()
+    needs:
+      - mysql-storage
+    runs-on: ubuntu-latest
+    steps:
+      - name: Require every language result
+        env:
+          STORAGE_RESULT: ${{ needs.mysql-storage.result }}
+        run: test "$STORAGE_RESULT" = success
