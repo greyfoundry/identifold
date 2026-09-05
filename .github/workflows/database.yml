@@ -195,6 +195,7 @@ jobs:
       matrix:
         language:
           - typescript
+          - python
           - go
     services:
       mysql:
@@ -234,6 +235,19 @@ jobs:
           npm install --global pnpm@10.33.0 &&
           pnpm install --frozen-lockfile &&
           pnpm --filter @greyfoundry/identifold exec vitest run test/mysql.integration.test.ts
+        env:
+          IDENTIFOLD_TEST_MYSQL_URL: mysql://root:root@127.0.0.1:3306/identifold_test
+
+      - name: Set up Python
+        if: matrix.language == 'python'
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: "3.14"
+      - name: Test Python storage
+        if: matrix.language == 'python'
+        run: >-
+          python -m pip install --disable-pip-version-check -e "packages/python[mysql,test]" &&
+          python -m pytest packages/python/tests/test_mysql_storage.py -q
         env:
           IDENTIFOLD_TEST_MYSQL_URL: mysql://root:root@127.0.0.1:3306/identifold_test
 
