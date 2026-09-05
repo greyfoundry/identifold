@@ -28,11 +28,10 @@ final class SqliteStorageTests: XCTestCase {
     let adapter = SqliteStorageAdapter(connection: handle)
     let randomMID = "01890f8c-7b2a-7cc3-98b0-112233445566"
     let randomREF = "ORD-0123-4567-89-P"
-    XCTAssertTrue(
-      try await adapter.reserve(
-        .init(machineID: randomMID, namespace: "order", reference: randomREF)
-      )
+    let reserved = try await adapter.reserve(
+      .init(machineID: randomMID, namespace: "order", reference: randomREF)
     )
+    XCTAssertTrue(reserved)
     let randomMapping = try await adapter.resolve(reference: randomREF, namespace: "order")
     XCTAssertEqual(randomMapping?.machineID, randomMID)
 
@@ -43,8 +42,10 @@ final class SqliteStorageTests: XCTestCase {
       scope: nil,
       width: 4
     )
-    XCTAssertEqual(try await adapter.allocate(request), 1)
-    XCTAssertEqual(try await adapter.allocate(request), 1)
+    let sequence = try await adapter.allocate(request)
+    let replay = try await adapter.allocate(request)
+    XCTAssertEqual(sequence, 1)
+    XCTAssertEqual(replay, 1)
     let sequenceMapping = try await adapter.resolve(
       reference: "RCT-0001-1",
       namespace: "receipt"
