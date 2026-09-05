@@ -1,6 +1,8 @@
 using Greyfoundry.Identifold;
 using Greyfoundry.Identifold.Storage;
 using Greyfoundry.Identifold.Storage.Postgres;
+using Greyfoundry.Identifold.Storage.Sqlite;
+using Microsoft.Data.Sqlite;
 using Npgsql;
 
 const string mid = "019d4c72-c910-7a84-b313-53c3ac61a32f";
@@ -19,6 +21,34 @@ var mapping = await storageAdapter.ResolveAsync(reservation.Reference, reservati
 if (mapping?.MachineId != mid) throw new Exception("resolve");
 if (await storageAdapter.AllocateAsync(new SequenceAllocationRequest(
     mid, "receipt", "RCT", null, 4)) != 1) throw new Exception("allocate");
+
+await using (var sqlite = new SqliteConnection("Data Source=:memory:"))
+{
+    await sqlite.OpenAsync();
+    var root = Directory.GetCurrentDirectory();
+    while (!Directory.Exists(Path.Combine(root, "integrations")))
+        root = Directory.GetParent(root)?.FullName ?? throw new Exception("repository root");
+    await using (var migration = sqlite.CreateCommand())
+    {
+        migration.CommandText = await File.ReadAllTextAsync(Path.Combine(
+            root, "integrations", "sqlite", "migrations", "001_identifold.up.sql"));
+        await migration.ExecuteNonQueryAsync();
+    }
+    var adapter = new SqliteStorageAdapter(sqlite);
+    const string sqliteMid = "01890f8c-7b2a-7cc3-98b0-112233445566";
+    const string sqliteRef = "ORD-0123-4567-89-P";
+    if (!await adapter.ReserveAsync(new(sqliteMid, "order", sqliteRef)))
+        throw new Exception("sqlite reserve");
+    if ((await adapter.ResolveAsync(sqliteRef, "order"))?.MachineId != sqliteMid)
+        throw new Exception("sqlite resolve");
+    var sqliteRequest = new SequenceAllocationRequest(
+        "01890f8c-7b2a-7cc3-98b0-112233445567", "receipt", "RCT", null, 4);
+    if (await adapter.AllocateAsync(sqliteRequest) != 1 ||
+        await adapter.AllocateAsync(sqliteRequest) != 1)
+        throw new Exception("sqlite allocate");
+    if ((await adapter.ResolveAsync("RCT-0001-1", "receipt"))?.MachineId != sqliteRequest.MachineId)
+        throw new Exception("sqlite sequential resolve");
+}
 
 var databaseUrl = Environment.GetEnvironmentVariable("IDENTIFOLD_TEST_DATABASE_URL");
 if (databaseUrl is not null)

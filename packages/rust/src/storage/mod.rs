@@ -5,6 +5,8 @@ use crate::Error;
 
 #[cfg(feature = "postgres")]
 pub mod postgres;
+#[cfg(feature = "sqlite")]
+pub mod sqlite;
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct ReferenceReservation {
