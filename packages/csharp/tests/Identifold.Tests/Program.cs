@@ -2,7 +2,9 @@ using Greyfoundry.Identifold;
 using Greyfoundry.Identifold.Storage;
 using Greyfoundry.Identifold.Storage.Postgres;
 using Greyfoundry.Identifold.Storage.Sqlite;
+using Greyfoundry.Identifold.Storage.MySql;
 using Microsoft.Data.Sqlite;
+using MySqlConnector;
 using Npgsql;
 
 const string mid = "019d4c72-c910-7a84-b313-53c3ac61a32f";
@@ -97,6 +99,50 @@ if (databaseUrl is not null)
         throw new Exception("postgres allocate");
     if ((await postgres.ResolveAsync("RCT-0001-1", "receipt"))?.MachineId != request.MachineId)
         throw new Exception("postgres sequential resolve");
+}
+
+var mysqlUrl = Environment.GetEnvironmentVariable("IDENTIFOLD_TEST_MYSQL_URL");
+if (mysqlUrl is not null)
+{
+    var uri = new Uri(mysqlUrl);
+    var credentials = uri.UserInfo.Split(':', 2);
+    var connectionString = new MySqlConnectionStringBuilder
+    {
+        Server = uri.Host,
+        Port = (uint)uri.Port,
+        Database = uri.AbsolutePath.TrimStart('/'),
+        UserID = credentials[0],
+        Password = credentials[1],
+    }.ConnectionString;
+    await using (var connection = new MySqlConnection(connectionString))
+    {
+        await connection.OpenAsync();
+        foreach (var table in new[]
+        {
+            "identifold_sequence_allocations",
+            "identifold_sequences",
+            "identifold_references",
+        })
+        {
+            await using var command = connection.CreateCommand();
+            command.CommandText = $"DELETE FROM {table}";
+            await command.ExecuteNonQueryAsync();
+        }
+    }
+
+    var mysql = new MySqlStorageAdapter(connectionString);
+    const string randomMid = "01890f8c-7b2a-7cc3-98b0-112233445566";
+    const string randomRef = "ORD-0123-4567-89-P";
+    if (!await mysql.ReserveAsync(new(randomMid, "order", randomRef)))
+        throw new Exception("mysql reserve");
+    if ((await mysql.ResolveAsync(randomRef, "order"))?.MachineId != randomMid)
+        throw new Exception("mysql resolve");
+    var request = new SequenceAllocationRequest(
+        "01890f8c-7b2a-7cc3-98b0-112233445567", "receipt", "RCT", null, 4);
+    if (await mysql.AllocateAsync(request) != 1 || await mysql.AllocateAsync(request) != 1)
+        throw new Exception("mysql allocate");
+    if ((await mysql.ResolveAsync("RCT-0001-1", "receipt"))?.MachineId != request.MachineId)
+        throw new Exception("mysql sequential resolve");
 }
 
 sealed class FakeStorage : IStorageAdapter

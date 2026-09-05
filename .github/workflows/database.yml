@@ -199,6 +199,7 @@ jobs:
           - go
           - java
           - kotlin
+          - csharp
     services:
       mysql:
         image: mysql:8.4.7
@@ -284,6 +285,17 @@ jobs:
         run: |
           mvn --batch-mode --no-transfer-progress --file packages/java/pom.xml install -DskipTests
           mvn --batch-mode --no-transfer-progress --file packages/kotlin/pom.xml -Dtest=MySQLStorageAdapterTest test
+        env:
+          IDENTIFOLD_TEST_MYSQL_URL: mysql://root:root@127.0.0.1:3306/identifold_test
+
+      - name: Set up .NET
+        if: matrix.language == 'csharp'
+        uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6.0.0
+        with:
+          dotnet-version: 9.0.x
+      - name: Test C# storage
+        if: matrix.language == 'csharp'
+        run: dotnet run --project packages/csharp/tests/Identifold.Tests/Identifold.Tests.csproj
         env:
           IDENTIFOLD_TEST_MYSQL_URL: mysql://root:root@127.0.0.1:3306/identifold_test
 
