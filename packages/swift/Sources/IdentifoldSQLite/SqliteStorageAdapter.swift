@@ -2,52 +2,57 @@ import CSQLite
 import Foundation
 import Identifold
 
-public actor SqliteStorageAdapter: StorageAdapter {
+public final class SqliteStorageAdapter: StorageAdapter, @unchecked Sendable {
   private let connection: OpaquePointer
+  private let lock = NSLock()
 
   public init(connection: OpaquePointer) {
     self.connection = connection
   }
 
   public func reserve(_ request: ReferenceReservation) async throws -> Bool {
-    try databaseOperation {
-      let statement = try prepare(
-        """
-        INSERT INTO identifold_references (reference, namespace, machine_id)
-        VALUES (?1, ?2, ?3)
-        ON CONFLICT(reference) DO NOTHING
-        """
-      )
-      defer { sqlite3_finalize(statement) }
-      try bind(request.reference, to: statement, at: 1)
-      try bind(request.namespace, to: statement, at: 2)
-      try bind(try machineIDBytes(request.machineID), to: statement, at: 3)
-      try expectDone(statement)
-      return sqlite3_changes(connection) == 1
+    try lock.withLock {
+      try databaseOperation {
+        let statement = try prepare(
+          """
+          INSERT INTO identifold_references (reference, namespace, machine_id)
+          VALUES (?1, ?2, ?3)
+          ON CONFLICT(reference) DO NOTHING
+          """
+        )
+        defer { sqlite3_finalize(statement) }
+        try bind(request.reference, to: statement, at: 1)
+        try bind(request.namespace, to: statement, at: 2)
+        try bind(try machineIDBytes(request.machineID), to: statement, at: 3)
+        try expectDone(statement)
+        return sqlite3_changes(connection) == 1
+      }
     }
   }
 
   public func resolve(reference: String, namespace: String) async throws -> ReferenceMapping? {
-    try databaseOperation {
-      if let mapping = try lookupRandom(reference: reference, namespace: namespace) {
-        return mapping
-      }
-      guard let parsed = parseSequentialReference(reference) else { return nil }
+    try lock.withLock {
+      try databaseOperation {
+        if let mapping = try lookupRandom(reference: reference, namespace: namespace) {
+          return mapping
+        }
+        guard let parsed = parseSequentialReference(reference) else { return nil }
 
-      let statement = try prepare(
-        """
-        SELECT machine_id, namespace
-        FROM identifold_sequence_allocations
-        WHERE namespace = ?1 AND reference_prefix = ?2 AND scope = ?3 AND sequence = ?4
-        """
-      )
-      defer { sqlite3_finalize(statement) }
-      try bind(namespace, to: statement, at: 1)
-      try bind(parsed.prefix, to: statement, at: 2)
-      try bind(parsed.scope, to: statement, at: 3)
-      guard let sequence = Int64(parsed.sequence) else { return nil }
-      try check(sqlite3_bind_int64(statement, 4, sequence))
-      return try readOptionalMapping(statement)
+        let statement = try prepare(
+          """
+          SELECT machine_id, namespace
+          FROM identifold_sequence_allocations
+          WHERE namespace = ?1 AND reference_prefix = ?2 AND scope = ?3 AND sequence = ?4
+          """
+        )
+        defer { sqlite3_finalize(statement) }
+        try bind(namespace, to: statement, at: 1)
+        try bind(parsed.prefix, to: statement, at: 2)
+        try bind(parsed.scope, to: statement, at: 3)
+        guard let sequence = Int64(parsed.sequence) else { return nil }
+        try check(sqlite3_bind_int64(statement, 4, sequence))
+        return try readOptionalMapping(statement)
+      }
     }
   }
 
@@ -56,48 +61,50 @@ public actor SqliteStorageAdapter: StorageAdapter {
       throw IdentifoldError("invalid_allocation_policy")
     }
 
-    return try databaseOperation {
-      let machineID = try machineIDBytes(request.machineID)
-      let scope = request.scope ?? ""
-      try execute("BEGIN IMMEDIATE")
-      var committed = false
-      defer {
-        if !committed { try? execute("ROLLBACK") }
-      }
+    return try lock.withLock {
+      try databaseOperation {
+        let machineID = try machineIDBytes(request.machineID)
+        let scope = request.scope ?? ""
+        try execute("BEGIN IMMEDIATE")
+        var committed = false
+        defer {
+          if !committed { try? execute("ROLLBACK") }
+        }
 
-      if let replay = try lookupReplay(
-        namespace: request.namespace,
-        scope: scope,
-        machineID: machineID
-      ) {
-        guard replay.prefix == request.referencePrefix, replay.width == request.width else {
+        if let replay = try lookupReplay(
+          namespace: request.namespace,
+          scope: scope,
+          machineID: machineID
+        ) {
+          guard replay.prefix == request.referencePrefix, replay.width == request.width else {
+            throw IdentifoldError("invalid_allocation_policy")
+          }
+          try execute("COMMIT")
+          committed = true
+          return replay.sequence
+        }
+
+        try createSequenceIfNeeded(request: request, scope: scope)
+        let policy = try lookupPolicy(namespace: request.namespace, scope: scope)
+        guard policy.prefix == request.referencePrefix, policy.width == request.width else {
           throw IdentifoldError("invalid_allocation_policy")
         }
+        guard policy.lastValue < maximumValue(width: request.width) else {
+          throw IdentifoldError("sequence_overflow")
+        }
+
+        let allocated = policy.lastValue + 1
+        try updateSequence(namespace: request.namespace, scope: scope, value: allocated)
+        try insertAllocation(
+          request: request,
+          scope: scope,
+          sequence: allocated,
+          machineID: machineID
+        )
         try execute("COMMIT")
         committed = true
-        return replay.sequence
+        return UInt64(allocated)
       }
-
-      try createSequenceIfNeeded(request: request, scope: scope)
-      let policy = try lookupPolicy(namespace: request.namespace, scope: scope)
-      guard policy.prefix == request.referencePrefix, policy.width == request.width else {
-        throw IdentifoldError("invalid_allocation_policy")
-      }
-      guard policy.lastValue < maximumValue(width: request.width) else {
-        throw IdentifoldError("sequence_overflow")
-      }
-
-      let allocated = policy.lastValue + 1
-      try updateSequence(namespace: request.namespace, scope: scope, value: allocated)
-      try insertAllocation(
-        request: request,
-        scope: scope,
-        sequence: allocated,
-        machineID: machineID
-      )
-      try execute("COMMIT")
-      committed = true
-      return UInt64(allocated)
     }
   }
 
