@@ -24,7 +24,11 @@ let package = Package(
       name: "IdentifoldTests",
       dependencies: ["Identifold"],
       path: "packages/swift/Tests/IdentifoldTests",
-      exclude: ["PostgresStorageTests.swift", "SqliteStorageTests.swift"]
+      exclude: [
+        "MySQLStorageTests.swift",
+        "PostgresStorageTests.swift",
+        "SqliteStorageTests.swift",
+      ]
     ),
   ]
 )

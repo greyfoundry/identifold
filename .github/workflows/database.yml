@@ -201,6 +201,7 @@ jobs:
           - java
           - kotlin
           - csharp
+          - swift
     services:
       mysql:
         image: mysql:8.4.7
@@ -307,6 +308,12 @@ jobs:
       - name: Test C# storage
         if: matrix.language == 'csharp'
         run: dotnet run --project packages/csharp/tests/Identifold.Tests/Identifold.Tests.csproj
+        env:
+          IDENTIFOLD_TEST_MYSQL_URL: mysql://root:root@127.0.0.1:3306/identifold_test
+
+      - name: Test Swift storage
+        if: matrix.language == 'swift'
+        run: swift test --package-path packages/swift --filter MySQLStorageTests
         env:
           IDENTIFOLD_TEST_MYSQL_URL: mysql://root:root@127.0.0.1:3306/identifold_test
 
