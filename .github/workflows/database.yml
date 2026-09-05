@@ -203,6 +203,7 @@ jobs:
           - csharp
           - swift
           - ruby
+          - php
     services:
       mysql:
         image: mysql:8.4.7
@@ -326,6 +327,20 @@ jobs:
       - name: Test Ruby storage
         if: matrix.language == 'ruby'
         run: gem install mysql2 --version 0.5.7 --no-document && ruby packages/ruby/test/mysql_storage_test.rb
+        env:
+          IDENTIFOLD_TEST_MYSQL_URL: mysql://root:root@127.0.0.1:3306/identifold_test
+
+      - name: Set up PHP
+        if: matrix.language == 'php'
+        uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240 # v2.37.2
+        with:
+          php-version: "8.5"
+          extensions: pdo_mysql
+          tools: composer
+      - name: Test PHP storage
+        if: matrix.language == 'php'
+        working-directory: packages/php
+        run: composer install --no-interaction --no-progress && php -d zend.assertions=1 -d assert.exception=1 tests/MySQLStorageTest.php
         env:
           IDENTIFOLD_TEST_MYSQL_URL: mysql://root:root@127.0.0.1:3306/identifold_test
 

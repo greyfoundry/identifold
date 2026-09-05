@@ -13,6 +13,7 @@
     "ext-pdo": "*"
   },
   "suggest": {
+    "ext-pdo_mysql": "Required by the MySQL storage adapter",
     "ext-pdo_pgsql": "Required by the PostgreSQL storage adapter",
     "ext-pdo_sqlite": "Required by the SQLite storage adapter"
   }
