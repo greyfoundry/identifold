@@ -172,4 +172,29 @@ describe("SQLite storage", () => {
         .get(),
     ).toEqual({ count: 0 });
   });
+
+  it("rolls back sequence overflow without changing the counter", async () => {
+    const adapter = createSqliteStorageAdapter(database);
+    database
+      .prepare(
+        "INSERT INTO identifold_sequences VALUES ('receipt', '', 'RCT', 4, 9999)",
+      )
+      .run();
+    await expect(
+      adapter.sequenceAllocator.allocate({
+        machineId: createMachineId(),
+        namespace: "receipt",
+        referencePrefix: "RCT",
+        scope: null,
+        width: 4,
+      }),
+    ).rejects.toMatchObject({ code: "sequence_overflow" });
+    expect(
+      database
+        .prepare(
+          "SELECT last_value AS value FROM identifold_sequences WHERE namespace = 'receipt'",
+        )
+        .get(),
+    ).toEqual({ value: 9999 });
+  });
 });
