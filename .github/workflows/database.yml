@@ -188,11 +188,14 @@ jobs:
         run: test "$STORAGE_RESULT" = success
 
   mysql-storage:
-    name: MySQL storage / ${{ matrix.language }}
+    name: ${{ matrix.backend_name }} storage / ${{ matrix.language }}
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
+        backend:
+          - mysql
+          - mariadb
         language:
           - typescript
           - python
@@ -204,16 +207,29 @@ jobs:
           - swift
           - ruby
           - php
+        include:
+          - backend: mysql
+            backend_name: MySQL
+            client: mysql
+            health_command: mysqladmin ping -h localhost -proot
+            image: mysql:8.4.7
+          - backend: mariadb
+            backend_name: MariaDB
+            client: mariadb
+            health_command: healthcheck.sh --connect --innodb_initialized
+            image: mariadb:12.3.3
     services:
       mysql:
-        image: mysql:8.4.7
+        image: ${{ matrix.image }}
         env:
+          MARIADB_DATABASE: identifold_test
+          MARIADB_ROOT_PASSWORD: root
           MYSQL_DATABASE: identifold_test
           MYSQL_ROOT_PASSWORD: root
         ports:
           - 3306:3306
         options: >-
-          --health-cmd="mysqladmin ping -h localhost -proot"
+          --health-cmd="${{ matrix.health_command }}"
           --health-interval 10s
           --health-timeout 5s
           --health-retries 10
@@ -225,9 +241,10 @@ jobs:
 
       - name: Apply MySQL migration
         env:
+          DATABASE_CLIENT: ${{ matrix.client }}
           MYSQL_CONTAINER: ${{ job.services.mysql.id }}
         run: >-
-          docker exec -i "$MYSQL_CONTAINER" mysql -uroot -proot identifold_test
+          docker exec -i "$MYSQL_CONTAINER" "$DATABASE_CLIENT" -uroot -proot identifold_test
           < integrations/mysql/migrations/001_identifold.up.sql
 
       - name: Set up Node.js
@@ -345,7 +362,7 @@ jobs:
           IDENTIFOLD_TEST_MYSQL_URL: mysql://root:root@127.0.0.1:3306/identifold_test
 
   mysql-storage-aggregate:
-    name: MySQL storage
+    name: MySQL and MariaDB storage
     if: always()
     needs:
       - mysql-storage

@@ -4,7 +4,7 @@ CREATE TABLE identifold_references (
   machine_id binary(16) NOT NULL,
   created_at timestamp(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
   CONSTRAINT identifold_references_namespace_check
-    CHECK (REGEXP_LIKE(namespace, '^[a-z]([a-z_]{0,61}[a-z])?$')),
+    CHECK (namespace REGEXP '^[a-z]([a-z_]{0,61}[a-z])?$'),
   CONSTRAINT identifold_references_value_check
     CHECK (octet_length(reference) BETWEEN 4 AND 100),
   INDEX identifold_references_machine_id_idx (machine_id)
@@ -19,9 +19,9 @@ CREATE TABLE identifold_sequences (
   PRIMARY KEY (namespace, scope),
   UNIQUE KEY identifold_sequences_prefix_scope_key (reference_prefix, scope),
   CONSTRAINT identifold_sequences_scope_check
-    CHECK (scope = '' OR REGEXP_LIKE(scope, '^[0-9]{4}$')),
+    CHECK (scope = '' OR scope REGEXP '^[0-9]{4}$'),
   CONSTRAINT identifold_sequences_prefix_check
-    CHECK (REGEXP_LIKE(reference_prefix, '^[A-Z]{2,8}$')),
+    CHECK (reference_prefix REGEXP '^[A-Z]{2,8}$'),
   CONSTRAINT identifold_sequences_width_check CHECK (width BETWEEN 4 AND 18)
 ) ENGINE = InnoDB;
 
