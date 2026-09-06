@@ -5,9 +5,11 @@ import MySQLNIO
 @available(macOS 13.0, iOS 16.0, tvOS 16.0, watchOS 9.0, *)
 public struct MySQLStorageAdapter: StorageAdapter, Sendable {
   private let connection: MySQLConnection
+  private let transactionGate: MySQLTransactionGate
 
   public init(connection: MySQLConnection) {
     self.connection = connection
+    self.transactionGate = MySQLTransactionGate()
   }
 
   public func reserve(_ request: ReferenceReservation) async throws -> Bool {
@@ -59,30 +61,121 @@ public struct MySQLStorageAdapter: StorageAdapter, Sendable {
   }
 
   public func allocate(_ request: SequenceAllocationRequest) async throws -> UInt64 {
-    let machineID = try mysqlUUID(request.machineID)
+    guard (4...18).contains(request.width) else {
+      throw IdentifoldError("invalid_allocation_policy")
+    }
+
+    await transactionGate.acquire()
+    do {
+      let sequence = try await allocateSerially(request)
+      await transactionGate.release()
+      return sequence
+    } catch {
+      await transactionGate.release()
+      throw error
+    }
+  }
+
+  private func allocateSerially(_ request: SequenceAllocationRequest) async throws -> UInt64 {
     for attempt in 0..<5 {
       do {
-        let rows = try await connection.query(
-          "CALL identifold_allocate_sequence(?, ?, ?, ?, ?)",
-          [
-            machineID,
-            .init(string: request.namespace),
-            .init(string: request.referencePrefix),
-            request.scope.map(MySQLData.init(string:)) ?? .null,
-            .init(int: Int(request.width)),
-          ]
-        ).get()
-        guard rows.count == 1, let sequence = rows[0].column("sequence")?.uint64 else {
-          throw IdentifoldError("allocation_conflict")
-        }
-        return sequence
+        return try await allocateTransaction(request)
       } catch  where attempt < 4 && transient(error) {
+        _ = try? await connection.simpleQuery("ROLLBACK").get()
         try await Task<Never, Never>.sleep(for: .milliseconds(1 << attempt))
       } catch {
+        _ = try? await connection.simpleQuery("ROLLBACK").get()
         throw mapped(error)
       }
     }
     throw IdentifoldError("allocation_conflict")
+  }
+
+  private func allocateTransaction(_ request: SequenceAllocationRequest) async throws -> UInt64 {
+    let machineID = try mysqlUUID(request.machineID)
+    let scope = request.scope ?? ""
+    _ = try await connection.simpleQuery("START TRANSACTION").get()
+
+    let replayRows = try await connection.query(
+      """
+      SELECT sequence, reference_prefix, width
+      FROM identifold_sequence_allocations
+      WHERE namespace = ? AND scope = ? AND machine_id = ?
+      FOR UPDATE
+      """,
+      [.init(string: request.namespace), .init(string: scope), machineID]
+    ).get()
+    if let replay = try onlyRow(replayRows) {
+      guard let sequence = replay.column("sequence")?.uint64,
+        replay.column("reference_prefix")?.string == request.referencePrefix,
+        replay.column("width")?.uint8 == request.width
+      else { throw IdentifoldError("invalid_allocation_policy") }
+      _ = try await connection.simpleQuery("COMMIT").get()
+      return sequence
+    }
+
+    _ = try await connection.query(
+      """
+      INSERT INTO identifold_sequences
+        (namespace, scope, reference_prefix, width, counter_value)
+      VALUES (?, ?, ?, ?, 0)
+      ON DUPLICATE KEY UPDATE namespace = VALUES(namespace)
+      """,
+      [
+        .init(string: request.namespace),
+        .init(string: scope),
+        .init(string: request.referencePrefix),
+        .init(int: Int(request.width)),
+      ]
+    ).get()
+
+    let policyRows = try await connection.query(
+      """
+      SELECT reference_prefix, width, counter_value
+      FROM identifold_sequences
+      WHERE namespace = ? AND scope = ?
+      FOR UPDATE
+      """,
+      [.init(string: request.namespace), .init(string: scope)]
+    ).get()
+    guard let policy = try onlyRow(policyRows),
+      policy.column("reference_prefix")?.string == request.referencePrefix,
+      policy.column("width")?.uint8 == request.width,
+      let current = policy.column("counter_value")?.uint64
+    else { throw IdentifoldError("invalid_allocation_policy") }
+    guard current < maximumValue(width: request.width) else {
+      throw IdentifoldError("sequence_overflow")
+    }
+
+    let allocated = current + 1
+    _ = try await connection.query(
+      """
+      UPDATE identifold_sequences SET counter_value = ?
+      WHERE namespace = ? AND scope = ?
+      """,
+      [
+        .init(int: Int(allocated)),
+        .init(string: request.namespace),
+        .init(string: scope),
+      ]
+    ).get()
+    _ = try await connection.query(
+      """
+      INSERT INTO identifold_sequence_allocations
+        (namespace, scope, sequence, machine_id, reference_prefix, width)
+      VALUES (?, ?, ?, ?, ?, ?)
+      """,
+      [
+        .init(string: request.namespace),
+        .init(string: scope),
+        .init(int: Int(allocated)),
+        machineID,
+        .init(string: request.referencePrefix),
+        .init(int: Int(request.width)),
+      ]
+    ).get()
+    _ = try await connection.simpleQuery("COMMIT").get()
+    return allocated
   }
 
   private func databaseOperation<T: Sendable>(
@@ -92,6 +185,29 @@ public struct MySQLStorageAdapter: StorageAdapter, Sendable {
       return try await operation()
     } catch {
       throw mapped(error)
+    }
+  }
+}
+
+private actor MySQLTransactionGate {
+  private var locked = false
+  private var waiters: [CheckedContinuation<Void, Never>] = []
+
+  func acquire() async {
+    if !locked {
+      locked = true
+      return
+    }
+    await withCheckedContinuation { continuation in
+      waiters.append(continuation)
+    }
+  }
+
+  func release() {
+    if waiters.isEmpty {
+      locked = false
+    } else {
+      waiters.removeFirst().resume()
     }
   }
 }
@@ -158,4 +274,8 @@ private func transient(_ error: any Error) -> Bool {
   return packet.errorCode.rawValue == 1205
     || packet.errorCode.rawValue == 1213
     || packet.sqlState == "40001"
+}
+
+private func maximumValue(width: UInt8) -> UInt64 {
+  (0..<width).reduce(1) { value, _ in value * 10 } - 1
 }
