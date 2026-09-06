@@ -221,7 +221,9 @@ jobs:
         run: >-
           npm install --global pnpm@10.33.0 &&
           pnpm install --frozen-lockfile &&
-          pnpm --filter @greyfoundry/identifold exec vitest run test/sqlite.integration.test.ts
+          pnpm --filter @greyfoundry/identifold exec vitest run test/sqlite.integration.test.ts &&
+          pnpm --dir examples/typescript build &&
+          node examples/typescript/dist/database/sqlite.js
 
       - name: Set up Python
         if: matrix.language == 'python'
@@ -232,7 +234,8 @@ jobs:
         if: matrix.language == 'python'
         run: >-
           python -m pip install --disable-pip-version-check -e "packages/python[test]" &&
-          python -m pytest packages/python/tests/test_sqlite_storage.py -q
+          python -m pytest packages/python/tests/test_sqlite_storage.py -q &&
+          python examples/python/database/sqlite.py
 
       - name: Set up Rust
         if: matrix.language == 'rust'
@@ -240,7 +243,9 @@ jobs:
       - name: Test Rust storage
         if: matrix.language == 'rust'
         working-directory: packages/rust
-        run: cargo test --locked --features sqlite --test sqlite_storage
+        run: |
+          cargo test --locked --features sqlite --test sqlite_storage
+          cargo run --locked --manifest-path ../../examples/rust/Cargo.toml --bin sqlite
 
       - name: Set up Go
         if: matrix.language == 'go'
@@ -250,8 +255,11 @@ jobs:
           cache-dependency-path: packages/go/go.sum
       - name: Test Go storage
         if: matrix.language == 'go'
-        working-directory: packages/go
-        run: go test ./storage/sqlite -v
+        run: |
+          cd packages/go
+          go test ./storage/sqlite -v
+          cd ../../examples/go
+          go run ./database/sqlite
 
       - name: Set up Java
         if: matrix.language == 'java' || matrix.language == 'kotlin'
@@ -261,12 +269,17 @@ jobs:
           java-version: "17"
       - name: Test Java storage
         if: matrix.language == 'java'
-        run: mvn --batch-mode --no-transfer-progress --file packages/java/pom.xml -Dtest=SqliteStorageAdapterTest test
+        run: |
+          mvn --batch-mode --no-transfer-progress --file packages/java/pom.xml -Dtest=SqliteStorageAdapterTest test
+          mvn --batch-mode --no-transfer-progress --file packages/java/pom.xml install -DskipTests
+          mvn --batch-mode --no-transfer-progress --file examples/java/pom.xml compile exec:java -Dexec.mainClass=SQLite
       - name: Test Kotlin storage
         if: matrix.language == 'kotlin'
         run: |
           mvn --batch-mode --no-transfer-progress --file packages/java/pom.xml install -DskipTests
           mvn --batch-mode --no-transfer-progress --file packages/kotlin/pom.xml -Dtest=SqliteStorageAdapterTest test
+          mvn --batch-mode --no-transfer-progress --file packages/kotlin/pom.xml install -DskipTests
+          mvn --batch-mode --no-transfer-progress --file examples/kotlin/pom.xml compile exec:java -Dexec.mainClass=SQLiteKt
 
       - name: Set up .NET
         if: matrix.language == 'csharp'
@@ -275,11 +288,15 @@ jobs:
           dotnet-version: 9.0.x
       - name: Test C# storage
         if: matrix.language == 'csharp'
-        run: dotnet run --project packages/csharp/tests/Identifold.Tests/Identifold.Tests.csproj
+        run: |
+          dotnet run --project packages/csharp/tests/Identifold.Tests/Identifold.Tests.csproj
+          dotnet run --project examples/csharp/database/sqlite/Identifold.Sqlite.Example.csproj
 
       - name: Test Swift storage
         if: matrix.language == 'swift'
-        run: swift test --package-path packages/swift --filter SqliteStorageTests
+        run: |
+          swift test --package-path packages/swift --filter SqliteStorageTests
+          swift run --package-path examples/swift/database SQLiteExample
 
       - name: Set up Ruby
         if: matrix.language == 'ruby'
@@ -288,7 +305,10 @@ jobs:
           ruby-version: "4.0"
       - name: Test Ruby storage
         if: matrix.language == 'ruby'
-        run: gem install sqlite3 --version '~> 2.9' --no-document && ruby packages/ruby/test/sqlite_storage_test.rb
+        run: >-
+          gem install sqlite3 --version '~> 2.9' --no-document &&
+          ruby packages/ruby/test/sqlite_storage_test.rb &&
+          ruby -I packages/ruby/lib examples/ruby/database/sqlite.rb
 
       - name: Set up PHP
         if: matrix.language == 'php'
@@ -299,8 +319,11 @@ jobs:
           tools: composer
       - name: Test PHP storage
         if: matrix.language == 'php'
-        working-directory: packages/php
-        run: composer install --no-interaction --no-progress && php -d zend.assertions=1 -d assert.exception=1 tests/SqliteStorageTest.php
+        run: |
+          composer install --working-dir packages/php --no-interaction --no-progress
+          php -d zend.assertions=1 -d assert.exception=1 packages/php/tests/SqliteStorageTest.php
+          composer install --working-dir examples/php --no-interaction --no-progress
+          php examples/php/database/sqlite.php
 
   sqlite-storage-aggregate:
     name: SQLite storage
@@ -385,7 +408,9 @@ jobs:
         run: >-
           npm install --global pnpm@10.33.0 &&
           pnpm install --frozen-lockfile &&
-          pnpm --filter @greyfoundry/identifold exec vitest run test/mysql.integration.test.ts
+          pnpm --filter @greyfoundry/identifold exec vitest run test/mysql.integration.test.ts &&
+          pnpm --dir examples/typescript build &&
+          node examples/typescript/dist/database/mysql.js
         env:
           IDENTIFOLD_TEST_MYSQL_URL: mysql://root:root@127.0.0.1:3306/identifold_test
 
@@ -398,7 +423,8 @@ jobs:
         if: matrix.language == 'python'
         run: >-
           python -m pip install --disable-pip-version-check -e "packages/python[mysql,test]" &&
-          python -m pytest packages/python/tests/test_mysql_storage.py -q
+          python -m pytest packages/python/tests/test_mysql_storage.py -q &&
+          python examples/python/database/mysql.py
         env:
           IDENTIFOLD_TEST_MYSQL_URL: mysql://root:root@127.0.0.1:3306/identifold_test
 
@@ -408,7 +434,9 @@ jobs:
       - name: Test Rust storage
         if: matrix.language == 'rust'
         working-directory: packages/rust
-        run: cargo test --locked --features mysql --test mysql_storage
+        run: |
+          cargo test --locked --features mysql --test mysql_storage
+          cargo run --locked --manifest-path ../../examples/rust/Cargo.toml --bin mysql
         env:
           IDENTIFOLD_TEST_MYSQL_URL: mysql://root:root@127.0.0.1:3306/identifold_test
 
@@ -420,8 +448,11 @@ jobs:
           cache-dependency-path: packages/go/go.sum
       - name: Test Go storage
         if: matrix.language == 'go'
-        working-directory: packages/go
-        run: go test ./storage/mysql -v
+        run: |
+          cd packages/go
+          go test ./storage/mysql -v
+          cd ../../examples/go
+          go run ./database/mysql
         env:
           IDENTIFOLD_TEST_MYSQL_URL: root:root@tcp(127.0.0.1:3306)/identifold_test?parseTime=true
 
@@ -433,9 +464,10 @@ jobs:
           java-version: "17"
       - name: Test Java storage
         if: matrix.language == 'java'
-        run: >-
-          mvn --batch-mode --no-transfer-progress --file packages/java/pom.xml
-          -Dtest=MySQLStorageAdapterTest test
+        run: |
+          mvn --batch-mode --no-transfer-progress --file packages/java/pom.xml -Dtest=MySQLStorageAdapterTest test
+          mvn --batch-mode --no-transfer-progress --file packages/java/pom.xml install -DskipTests
+          mvn --batch-mode --no-transfer-progress --file examples/java/pom.xml compile exec:java -Dexec.mainClass=MySQL
         env:
           IDENTIFOLD_TEST_MYSQL_URL: mysql://root:root@127.0.0.1:3306/identifold_test
       - name: Test Kotlin storage
@@ -443,6 +475,8 @@ jobs:
         run: |
           mvn --batch-mode --no-transfer-progress --file packages/java/pom.xml install -DskipTests
           mvn --batch-mode --no-transfer-progress --file packages/kotlin/pom.xml -Dtest=MySQLStorageAdapterTest test
+          mvn --batch-mode --no-transfer-progress --file packages/kotlin/pom.xml install -DskipTests
+          mvn --batch-mode --no-transfer-progress --file examples/kotlin/pom.xml compile exec:java -Dexec.mainClass=MySQLKt
         env:
           IDENTIFOLD_TEST_MYSQL_URL: mysql://root:root@127.0.0.1:3306/identifold_test
 
@@ -453,13 +487,17 @@ jobs:
           dotnet-version: 9.0.x
       - name: Test C# storage
         if: matrix.language == 'csharp'
-        run: dotnet run --project packages/csharp/tests/Identifold.Tests/Identifold.Tests.csproj
+        run: |
+          dotnet run --project packages/csharp/tests/Identifold.Tests/Identifold.Tests.csproj
+          dotnet run --project examples/csharp/database/mysql/Identifold.MySql.Example.csproj
         env:
           IDENTIFOLD_TEST_MYSQL_URL: mysql://root:root@127.0.0.1:3306/identifold_test
 
       - name: Test Swift storage
         if: matrix.language == 'swift'
-        run: swift test --package-path packages/swift --filter MySQLStorageTests
+        run: |
+          swift test --package-path packages/swift --filter MySQLStorageTests
+          swift run --package-path examples/swift/database MySQLExample
         env:
           IDENTIFOLD_TEST_MYSQL_URL: mysql://root:root@127.0.0.1:3306/identifold_test
 
@@ -470,7 +508,10 @@ jobs:
           ruby-version: "4.0"
       - name: Test Ruby storage
         if: matrix.language == 'ruby'
-        run: gem install mysql2 --version 0.5.7 --no-document && ruby packages/ruby/test/mysql_storage_test.rb
+        run: >-
+          gem install mysql2 --version 0.5.7 --no-document &&
+          ruby packages/ruby/test/mysql_storage_test.rb &&
+          ruby -I packages/ruby/lib examples/ruby/database/mysql.rb
         env:
           IDENTIFOLD_TEST_MYSQL_URL: mysql://root:root@127.0.0.1:3306/identifold_test
 
@@ -483,8 +524,11 @@ jobs:
           tools: composer
       - name: Test PHP storage
         if: matrix.language == 'php'
-        working-directory: packages/php
-        run: composer install --no-interaction --no-progress && php -d zend.assertions=1 -d assert.exception=1 tests/MySQLStorageTest.php
+        run: |
+          composer install --working-dir packages/php --no-interaction --no-progress
+          php -d zend.assertions=1 -d assert.exception=1 packages/php/tests/MySQLStorageTest.php
+          composer install --working-dir examples/php --no-interaction --no-progress
+          php examples/php/database/mysql.php
         env:
           IDENTIFOLD_TEST_MYSQL_URL: mysql://root:root@127.0.0.1:3306/identifold_test
 

@@ -12,14 +12,16 @@
             "dist": {
                 "type": "path",
                 "url": "../../packages/php",
-                "reference": "797fbd83d11ecbe94c3d3a7c48b35743d5942fb6"
+                "reference": "efbd412edc79050e0fb4c26824d3481ba9aac42b"
             },
             "require": {
                 "ext-pdo": "*",
                 "php": ">=8.2"
             },
             "suggest": {
-                "ext-pdo_pgsql": "Required by the PostgreSQL storage adapter"
+                "ext-pdo_mysql": "Required by the MySQL storage adapter",
+                "ext-pdo_pgsql": "Required by the PostgreSQL storage adapter",
+                "ext-pdo_sqlite": "Required by the SQLite storage adapter"
             },
             "type": "library",
             "autoload": {

@@ -10,9 +10,12 @@
   },
   "dependencies": {
     "@greyfoundry/identifold": "workspace:*",
+    "better-sqlite3": "^13.0.3",
+    "mysql2": "^3.15.3",
     "pg": "^8.23.0"
   },
   "devDependencies": {
+    "@types/better-sqlite3": "^9.6.0",
     "@types/node": "^26.0.0",
     "@types/pg": "^8.23.1",
     "typescript": "^6.0.3"
