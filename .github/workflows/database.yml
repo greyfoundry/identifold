@@ -187,6 +187,133 @@ jobs:
           STORAGE_RESULT: ${{ needs.postgres-storage.result }}
         run: test "$STORAGE_RESULT" = success
 
+  sqlite-storage:
+    name: SQLite storage / ${{ matrix.language }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        language:
+          - typescript
+          - python
+          - rust
+          - go
+          - java
+          - kotlin
+          - csharp
+          - swift
+          - ruby
+          - php
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Set up Node.js
+        if: matrix.language == 'typescript'
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 24
+          package-manager-cache: false
+      - name: Test TypeScript storage
+        if: matrix.language == 'typescript'
+        run: >-
+          npm install --global pnpm@10.33.0 &&
+          pnpm install --frozen-lockfile &&
+          pnpm --filter @greyfoundry/identifold exec vitest run test/sqlite.integration.test.ts
+
+      - name: Set up Python
+        if: matrix.language == 'python'
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: "3.14"
+      - name: Test Python storage
+        if: matrix.language == 'python'
+        run: >-
+          python -m pip install --disable-pip-version-check -e "packages/python[test]" &&
+          python -m pytest packages/python/tests/test_sqlite_storage.py -q
+
+      - name: Set up Rust
+        if: matrix.language == 'rust'
+        run: rustup toolchain install stable --profile minimal
+      - name: Test Rust storage
+        if: matrix.language == 'rust'
+        working-directory: packages/rust
+        run: cargo test --locked --features sqlite --test sqlite_storage
+
+      - name: Set up Go
+        if: matrix.language == 'go'
+        uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+        with:
+          go-version: 1.26.x
+          cache-dependency-path: packages/go/go.sum
+      - name: Test Go storage
+        if: matrix.language == 'go'
+        working-directory: packages/go
+        run: go test ./storage/sqlite -v
+
+      - name: Set up Java
+        if: matrix.language == 'java' || matrix.language == 'kotlin'
+        uses: actions/setup-java@dd06d9cba3e5552c54d9f8ea23572deb30010f7c # v6.0.0
+        with:
+          distribution: temurin
+          java-version: "17"
+      - name: Test Java storage
+        if: matrix.language == 'java'
+        run: mvn --batch-mode --no-transfer-progress --file packages/java/pom.xml -Dtest=SqliteStorageAdapterTest test
+      - name: Test Kotlin storage
+        if: matrix.language == 'kotlin'
+        run: |
+          mvn --batch-mode --no-transfer-progress --file packages/java/pom.xml install -DskipTests
+          mvn --batch-mode --no-transfer-progress --file packages/kotlin/pom.xml -Dtest=SqliteStorageAdapterTest test
+
+      - name: Set up .NET
+        if: matrix.language == 'csharp'
+        uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6.0.0
+        with:
+          dotnet-version: 9.0.x
+      - name: Test C# storage
+        if: matrix.language == 'csharp'
+        run: dotnet run --project packages/csharp/tests/Identifold.Tests/Identifold.Tests.csproj
+
+      - name: Test Swift storage
+        if: matrix.language == 'swift'
+        run: swift test --package-path packages/swift --filter SqliteStorageTests
+
+      - name: Set up Ruby
+        if: matrix.language == 'ruby'
+        uses: ruby/setup-ruby@95ef2b042f9d7a56d8268cba8559e2842e2ad01b # v1 snapshot
+        with:
+          ruby-version: "4.0"
+      - name: Test Ruby storage
+        if: matrix.language == 'ruby'
+        run: gem install sqlite3 --version '~> 2.9' --no-document && ruby packages/ruby/test/sqlite_storage_test.rb
+
+      - name: Set up PHP
+        if: matrix.language == 'php'
+        uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240 # v2.37.2
+        with:
+          php-version: "8.5"
+          extensions: pdo_sqlite
+          tools: composer
+      - name: Test PHP storage
+        if: matrix.language == 'php'
+        working-directory: packages/php
+        run: composer install --no-interaction --no-progress && php -d zend.assertions=1 -d assert.exception=1 tests/SqliteStorageTest.php
+
+  sqlite-storage-aggregate:
+    name: SQLite storage
+    if: always()
+    needs:
+      - sqlite-storage
+    runs-on: ubuntu-latest
+    steps:
+      - name: Require every language result
+        env:
+          STORAGE_RESULT: ${{ needs.sqlite-storage.result }}
+        run: test "$STORAGE_RESULT" = success
+
   mysql-storage:
     name: ${{ matrix.backend_name }} storage / ${{ matrix.language }}
     runs-on: ubuntu-latest
