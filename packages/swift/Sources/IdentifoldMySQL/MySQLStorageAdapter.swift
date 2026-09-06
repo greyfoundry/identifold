@@ -13,14 +13,16 @@ public struct MySQLStorageAdapter: StorageAdapter, Sendable {
   public func reserve(_ request: ReferenceReservation) async throws -> Bool {
     try await databaseOperation {
       let machineID = try mysqlUUID(request.machineID)
-      let rows = try await connection.query(
-        "CALL identifold_reserve_reference(?, ?, ?)",
-        [machineID, .init(string: request.namespace), .init(string: request.reference)]
+      nonisolated(unsafe) var affectedRows: UInt64 = 0
+      _ = try await connection.query(
+        """
+        INSERT IGNORE INTO identifold_references (machine_id, namespace, reference)
+        VALUES (?, ?, ?)
+        """,
+        [machineID, .init(string: request.namespace), .init(string: request.reference)],
+        onMetadata: { affectedRows = $0.affectedRows }
       ).get()
-      guard rows.count == 1, let reserved = rows[0].column("reserved")?.bool else {
-        throw IdentifoldError("allocation_conflict")
-      }
-      return reserved
+      return affectedRows == 1
     }
   }
 
