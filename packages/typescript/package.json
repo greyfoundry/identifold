@@ -139,7 +139,7 @@
     "drizzle-orm": "^0.45.2",
     "fast-check": "^4.9.0",
     "mysql2": "^3.24.2",
-    "pg": "^8.23.0"
+    "pg": "^8.23.1"
   },
   "publishConfig": {
     "access": "public",
