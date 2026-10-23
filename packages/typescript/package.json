@@ -132,12 +132,12 @@
     }
   },
   "devDependencies": {
-    "@prisma/client": "^7.10.0",
+    "@prisma/client": "^7.10.1",
     "@types/better-sqlite3": "^9.6.0",
     "@types/pg": "^8.23.1",
     "better-sqlite3": "^13.0.3",
-    "drizzle-orm": "^0.45.2",
-    "fast-check": "^4.9.0",
+    "drizzle-orm": "^0.45.4",
+    "fast-check": "^4.10.2",
     "mysql2": "^3.24.2",
     "pg": "^8.23.0"
   },
