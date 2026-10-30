@@ -63,7 +63,7 @@ jobs:
       - name: Verify released source
         run: git diff --exit-code v1.0.0 -- packages/typescript
       - name: Set up Node.js
-        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: 24
           package-manager-cache: false
@@ -98,7 +98,7 @@ jobs:
       - name: Verify released source
         run: git diff --exit-code v1.0.0 -- packages/python
       - name: Set up Python
-        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
         with:
           python-version: "3.14"
       - name: Build and test package
@@ -107,7 +107,7 @@ jobs:
           python -m pytest packages/python/tests -q
           python -m build packages/python
       - name: Publish package
-        uses: pypa/gh-action-pypi-publish@dc37677b2e1c63e2034f94d8a5b11f265b73ba33 # v1.14.2
+        uses: pypa/gh-action-pypi-publish@7245906fb61fa33a13554f9d5fb856fe61758086 # v1.14.3
         with:
           packages-dir: packages/python/dist
           print-hash: true
@@ -173,7 +173,7 @@ jobs:
         run: cargo fmt --check && cargo test --locked && cargo publish --dry-run --locked
       - name: Authenticate with crates.io
         id: crates-auth
-        uses: rust-lang/crates-io-auth-action@c6f97d42243bad5fab37ca0427f495c86d5b1a18 # v1.0.5
+        uses: rust-lang/crates-io-auth-action@3268eb413133e2960fa4ae0e963ca76380c54cd9 # v1.0.6
       - name: Publish package
         working-directory: packages/rust
         env:
@@ -199,7 +199,7 @@ jobs:
       - name: Verify released source
         run: git diff --exit-code v1.0.0 -- packages/ruby
       - name: Set up Ruby
-        uses: ruby/setup-ruby@95ef2b042f9d7a56d8268cba8559e2842e2ad01b # v1 snapshot
+        uses: ruby/setup-ruby@7f797815d8adceb1c412e7abefdd1ab4abc47a5f # v1 snapshot
         with:
           ruby-version: "4.0"
       - name: Test and build package
@@ -229,7 +229,7 @@ jobs:
       - name: Verify released source
         run: git diff --exit-code v1.0.0 -- packages/java/src
       - name: Set up Java and signing
-        uses: actions/setup-java@dd06d9cba3e5552c54d9f8ea23572deb30010f7c # v6.0.0
+        uses: actions/setup-java@b843ebf9b913146b38da2eaa7aeddf76074ae1ad # v6.1.0
         with:
           distribution: temurin
           java-version: "17"
@@ -272,7 +272,7 @@ jobs:
           packages/kotlin/src/main/kotlin
           packages/kotlin/src/test/kotlin
       - name: Set up Java and signing
-        uses: actions/setup-java@dd06d9cba3e5552c54d9f8ea23572deb30010f7c # v6.0.0
+        uses: actions/setup-java@b843ebf9b913146b38da2eaa7aeddf76074ae1ad # v6.1.0
         with:
           distribution: temurin
           java-version: "17"
