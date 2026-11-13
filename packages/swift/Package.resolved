@@ -6,8 +6,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/vapor/mysql-nio.git",
       "state" : {
-        "revision" : "7fa853040169b604a16b963f23b481772f4ac181",
-        "version" : "1.9.1"
+        "revision" : "3cd7153792ab259a217507b775c14d9ddba3f79f",
+        "version" : "1.9.3"
       }
     },
     {
